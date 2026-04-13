@@ -3,17 +3,8 @@
 -- Execute in Supabase SQL Editor.
 
 -- Clear existing data (safe to re-run)
-TRUNCATE step_items, step_sections, workflow_steps, people RESTART IDENTITY CASCADE;
-
--- ============================================================
--- PEOPLE
--- ============================================================
-INSERT INTO people (id, first_name, last_name) VALUES
-  ('11111111-1111-1111-1111-111111111111', 'Alex', 'Morgan'),
-  ('22222222-2222-2222-2222-222222222222', 'Jordan', 'Lee'),
-  ('33333333-3333-3333-3333-333333333333', 'Taylor', 'Nguyen'),
-  ('44444444-4444-4444-4444-444444444444', 'Casey', 'Patel'),
-  ('55555555-5555-5555-5555-555555555555', 'Sam', 'Rivera');
+-- Note: people table is NOT truncated — manage people via the app UI.
+TRUNCATE step_items, step_sections, workflow_steps RESTART IDENTITY CASCADE;
 
 -- ============================================================
 -- WORKFLOW STEPS

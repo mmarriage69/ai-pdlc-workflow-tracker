@@ -14,6 +14,7 @@ interface ItemFormProps {
   people: Person[]
   onSave: (data: Partial<StepItem>) => Promise<void>
   onCancel: () => void
+  onPersonAdded?: (person: Person) => void
 }
 
 function textToDoc(text: string): object {
@@ -32,7 +33,7 @@ function docToText(doc: object): string {
   }
 }
 
-export function ItemForm({ item, people, onSave, onCancel }: ItemFormProps) {
+export function ItemForm({ item, people, onSave, onCancel, onPersonAdded }: ItemFormProps) {
   const [title, setTitle] = useState(item?.title ?? '')
   const [itemType, setItemType] = useState<ItemType>(item?.item_type ?? 'ai_skill')
   const [status, setStatus] = useState<Status>(item?.status ?? 'Pending')
@@ -125,6 +126,7 @@ export function ItemForm({ item, people, onSave, onCancel }: ItemFormProps) {
             people={people}
             value={ownerId}
             onChange={setOwnerId}
+            onPersonAdded={onPersonAdded}
             className="mt-1 w-full"
           />
         </div>
@@ -135,6 +137,7 @@ export function ItemForm({ item, people, onSave, onCancel }: ItemFormProps) {
             people={people}
             value={builderId}
             onChange={setBuilderId}
+            onPersonAdded={onPersonAdded}
             placeholder="Unassigned"
             className="mt-1 w-full"
           />

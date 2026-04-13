@@ -86,6 +86,12 @@ export function StepDetailPage({ slug }: StepDetailPageProps) {
     }
   }, [])
 
+  function handlePersonAdded(person: Person) {
+    setPeople((prev) =>
+      [...prev, person].sort((a, b) => a.first_name.localeCompare(b.first_name))
+    )
+  }
+
   async function updateStepOwner(field: 'owner_person_id' | 'metric_owner_person_id', personId: string | null) {
     if (!step) return
     const { data } = await supabase.from('workflow_steps').update({ [field]: personId }).eq('id', step.id).select().single()
@@ -303,6 +309,7 @@ export function StepDetailPage({ slug }: StepDetailPageProps) {
               people={people}
               value={step.owner_person_id}
               onChange={(id) => updateStepOwner('owner_person_id', id)}
+              onPersonAdded={handlePersonAdded}
               placeholder="Unassigned"
               className="w-full bg-white"
             />
@@ -313,6 +320,7 @@ export function StepDetailPage({ slug }: StepDetailPageProps) {
               people={people}
               value={step.metric_owner_person_id}
               onChange={(id) => updateStepOwner('metric_owner_person_id', id)}
+              onPersonAdded={handlePersonAdded}
               placeholder="Unassigned"
               className="w-full bg-white"
             />
@@ -467,6 +475,7 @@ export function StepDetailPage({ slug }: StepDetailPageProps) {
                 people={people}
                 onSave={addItem}
                 onCancel={() => setAddingItem(false)}
+                onPersonAdded={handlePersonAdded}
               />
             </div>
           ) : (
