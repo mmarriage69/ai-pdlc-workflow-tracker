@@ -52,13 +52,13 @@ export function OwnerSelect({
     setPeople(peopleProp)
   }, [peopleProp])
 
-  function handleValueChange(v: string) {
+  function handleValueChange(v: string | null) {
     if (v === '__add_new__') {
       // Don't propagate — open the dialog instead
       setDialogOpen(true)
       return
     }
-    onChange(v === '__none__' ? null : v)
+    onChange(v === '__none__' || v === null ? null : v)
   }
 
   function handleDialogClose(open: boolean) {
