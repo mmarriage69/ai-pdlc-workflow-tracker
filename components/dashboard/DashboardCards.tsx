@@ -13,6 +13,18 @@ interface DashboardData {
   people: Person[]
 }
 
+function DbError({ message }: { message: string }) {
+  return (
+    <div className="bg-red-50 border border-red-200 rounded-xl p-5 text-sm text-red-700">
+      <p className="font-semibold mb-1">Could not load data</p>
+      <p className="text-red-600 font-mono text-xs">{message}</p>
+      <p className="mt-2 text-red-600">
+        Check that your Supabase migration and seed SQL have been run, and that RLS is disabled for the anon role.
+      </p>
+    </div>
+  )
+}
+
 function StatCard({
   label,
   value,
@@ -53,20 +65,27 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 export function DashboardCards() {
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     async function load() {
-      const [stepsRes, itemsRes, peopleRes] = await Promise.all([
-        supabase.from('workflow_steps').select('*').order('order_index'),
-        supabase.from('step_items').select('*'),
-        supabase.from('people').select('*'),
-      ])
-      setData({
-        steps: stepsRes.data ?? [],
-        items: itemsRes.data ?? [],
-        people: peopleRes.data ?? [],
-      })
-      setLoading(false)
+      try {
+        const [stepsRes, itemsRes, peopleRes] = await Promise.all([
+          supabase.from('workflow_steps').select('*').order('order_index'),
+          supabase.from('step_items').select('*'),
+          supabase.from('people').select('*'),
+        ])
+        if (stepsRes.error) { setError(stepsRes.error.message); setLoading(false); return }
+        setData({
+          steps: stepsRes.data ?? [],
+          items: itemsRes.data ?? [],
+          people: peopleRes.data ?? [],
+        })
+      } catch (e) {
+        setError(e instanceof Error ? e.message : String(e))
+      } finally {
+        setLoading(false)
+      }
     }
     load()
   }, [])
@@ -81,6 +100,7 @@ export function DashboardCards() {
     )
   }
 
+  if (error) return <DbError message={error} />
   if (!data) return null
 
   const { steps, items } = data

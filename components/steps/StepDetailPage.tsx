@@ -43,29 +43,36 @@ export function StepDetailPage({ slug }: StepDetailPageProps) {
   const [items, setItems] = useState<StepItem[]>([])
   const [people, setPeople] = useState<Person[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [addingSection, setAddingSection] = useState(false)
   const [newSectionTitle, setNewSectionTitle] = useState('')
   const [addingItem, setAddingItem] = useState(false)
   const printRef = useRef<HTMLDivElement>(null)
 
   const loadData = useCallback(async () => {
-    const [stepRes, peopleRes] = await Promise.all([
-      supabase.from('workflow_steps').select('*').eq('slug', slug).single(),
-      supabase.from('people').select('*').order('first_name'),
-    ])
+    try {
+      const [stepRes, peopleRes] = await Promise.all([
+        supabase.from('workflow_steps').select('*').eq('slug', slug).single(),
+        supabase.from('people').select('*').order('first_name'),
+      ])
 
-    if (!stepRes.data) { setLoading(false); return }
+      if (stepRes.error) { setError(stepRes.error.message); setLoading(false); return }
+      if (!stepRes.data) { setLoading(false); return }
 
-    const [sectionsRes, itemsRes] = await Promise.all([
-      supabase.from('step_sections').select('*').eq('workflow_step_id', stepRes.data.id).order('order_index'),
-      supabase.from('step_items').select('*').eq('workflow_step_id', stepRes.data.id).order('order_index'),
-    ])
+      const [sectionsRes, itemsRes] = await Promise.all([
+        supabase.from('step_sections').select('*').eq('workflow_step_id', stepRes.data.id).order('order_index'),
+        supabase.from('step_items').select('*').eq('workflow_step_id', stepRes.data.id).order('order_index'),
+      ])
 
-    setStep(stepRes.data)
-    setSections(sectionsRes.data ?? [])
-    setItems(itemsRes.data ?? [])
-    setPeople(peopleRes.data ?? [])
-    setLoading(false)
+      setStep(stepRes.data)
+      setSections(sectionsRes.data ?? [])
+      setItems(itemsRes.data ?? [])
+      setPeople(peopleRes.data ?? [])
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setLoading(false)
+    }
   }, [slug])
 
   useEffect(() => { loadData() }, [loadData])
@@ -222,6 +229,20 @@ export function StepDetailPage({ slug }: StepDetailPageProps) {
         {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className="h-16 bg-slate-100 rounded-xl animate-pulse" />
         ))}
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-5 text-sm text-red-700 max-w-xl">
+          <p className="font-semibold mb-1">Could not load step data</p>
+          <p className="font-mono text-xs text-red-600">{error}</p>
+          <p className="mt-2 text-red-600">
+            Run the migration and seed SQL in your Supabase project, then reload.
+          </p>
+        </div>
       </div>
     )
   }
