@@ -41,21 +41,21 @@ export function SectionAccordion({ section, isFirst, isLast, onUpdate, onDelete 
   }
 
   return (
-    <div className="border border-gray-200 rounded-lg bg-white section-accordion">
+    <div className="border border-slate-200 rounded-xl bg-white shadow-sm section-accordion">
       {/* Header */}
       <div
-        className="flex items-center gap-2 px-4 py-3 cursor-pointer hover:bg-gray-50 rounded-t-lg"
+        className="flex items-center gap-2 px-4 py-3 cursor-pointer hover:bg-slate-50 rounded-xl transition-colors"
         onClick={() => !editing && setCollapsed(!collapsed)}
       >
-        <div className="text-gray-400 shrink-0">
-          {collapsed ? <ChevronRight size={15} /> : <ChevronDown size={15} />}
+        <div className="text-slate-400 shrink-0">
+          {collapsed ? <ChevronRight size={15} /> : <ChevronDown size={15} className="text-indigo-400" />}
         </div>
-        <h3 className="text-sm font-semibold text-gray-900 flex-1">{section.title}</h3>
-        <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+        <h3 className="text-sm font-semibold text-slate-800 flex-1">{section.title}</h3>
+        <div className="flex items-center gap-0.5 shrink-0" onClick={(e) => e.stopPropagation()}>
           <Button
             variant="ghost"
             size="sm"
-            className="h-7 w-7 p-0 text-gray-400 hover:text-gray-700 print:hidden"
+            className="h-7 w-7 p-0 text-slate-300 hover:text-slate-600 hover:bg-slate-100 print:hidden"
             onClick={handleMoveUp}
             disabled={isFirst}
             title="Move up"
@@ -65,7 +65,7 @@ export function SectionAccordion({ section, isFirst, isLast, onUpdate, onDelete 
           <Button
             variant="ghost"
             size="sm"
-            className="h-7 w-7 p-0 text-gray-400 hover:text-gray-700 print:hidden"
+            className="h-7 w-7 p-0 text-slate-300 hover:text-slate-600 hover:bg-slate-100 print:hidden"
             onClick={handleMoveDown}
             disabled={isLast}
             title="Move down"
@@ -76,7 +76,7 @@ export function SectionAccordion({ section, isFirst, isLast, onUpdate, onDelete 
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 w-7 p-0 text-gray-400 hover:text-gray-700 print:hidden"
+              className="h-7 w-7 p-0 text-slate-300 hover:text-indigo-600 hover:bg-indigo-50 print:hidden"
               onClick={() => {
                 setCollapsed(false)
                 setEditing(true)
@@ -91,7 +91,7 @@ export function SectionAccordion({ section, isFirst, isLast, onUpdate, onDelete 
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 w-7 p-0 text-red-400 hover:text-red-600 print:hidden"
+              className="h-7 w-7 p-0 text-slate-300 hover:text-red-500 hover:bg-red-50 print:hidden"
               onClick={handleDelete}
               title="Delete section"
             >
@@ -103,7 +103,7 @@ export function SectionAccordion({ section, isFirst, isLast, onUpdate, onDelete 
 
       {/* Body */}
       {(!collapsed || editing) && (
-        <div className="border-t border-gray-100 px-4 py-3">
+        <div className="border-t border-slate-100 px-4 py-3">
           {editing ? (
             <div>
               <RichTextEditor
@@ -112,7 +112,7 @@ export function SectionAccordion({ section, isFirst, isLast, onUpdate, onDelete 
                 editable
               />
               <div className="flex gap-2 mt-3">
-                <Button size="sm" onClick={handleSave} disabled={saving}>
+                <Button size="sm" onClick={handleSave} disabled={saving} className="bg-indigo-600 hover:bg-indigo-700 text-white">
                   {saving ? 'Saving…' : 'Save'}
                 </Button>
                 <Button
@@ -135,7 +135,7 @@ export function SectionAccordion({ section, isFirst, isLast, onUpdate, onDelete 
 
       {/* Always render for print even if collapsed */}
       {collapsed && !editing && (
-        <div className="hidden print:block border-t border-gray-100 px-4 py-3">
+        <div className="hidden print:block border-t border-slate-100 px-4 py-3">
           <RichTextDisplay content={section.content_json} />
         </div>
       )}

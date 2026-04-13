@@ -2,19 +2,22 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Target, Search, Lightbulb, Hammer, BarChart2, Megaphone, Users, X, Menu } from 'lucide-react'
+import {
+  LayoutDashboard, Target, Search, Lightbulb,
+  Hammer, BarChart2, Megaphone, Users, X, Menu, Sparkles
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useState } from 'react'
 
 const navItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/goals-planning', label: 'Goals / Planning', icon: Target },
-  { href: '/discover-question', label: 'Discover / Question', icon: Search },
-  { href: '/hypothesize-frame', label: 'Hypothesize & Frame', icon: Lightbulb },
-  { href: '/build-validate', label: 'Build / Validate', icon: Hammer },
-  { href: '/measure-iterate', label: 'Measure / Iterate', icon: BarChart2 },
-  { href: '/scale-evangelize', label: 'Scale / Evangelize', icon: Megaphone },
-  { href: '/people', label: 'People', icon: Users },
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, section: null },
+  { href: '/goals-planning', label: 'Goals / Planning', icon: Target, section: 'Workflow Steps' },
+  { href: '/discover-question', label: 'Discover / Question', icon: Search, section: null },
+  { href: '/hypothesize-frame', label: 'Hypothesize & Frame', icon: Lightbulb, section: null },
+  { href: '/build-validate', label: 'Build / Validate', icon: Hammer, section: null },
+  { href: '/measure-iterate', label: 'Measure / Iterate', icon: BarChart2, section: null },
+  { href: '/scale-evangelize', label: 'Scale / Evangelize', icon: Megaphone, section: null },
+  { href: '/people', label: 'People', icon: Users, section: 'Admin' },
 ]
 
 export function Sidebar() {
@@ -23,39 +26,71 @@ export function Sidebar() {
 
   const NavContent = () => (
     <nav className="flex flex-col h-full">
-      <div className="px-4 py-5 border-b border-gray-200">
-        <h1 className="text-sm font-semibold text-gray-900 leading-tight">AI PDLC<br />Workflow Tracker</h1>
+      {/* Logo / Brand */}
+      <div className="px-4 py-5 border-b border-white/10">
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg bg-indigo-400/20 border border-indigo-400/30 flex items-center justify-center shrink-0">
+            <Sparkles size={14} className="text-indigo-300" />
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-white leading-tight">AI PDLC</p>
+            <p className="text-[10px] text-indigo-300/80 leading-tight">Workflow Tracker</p>
+          </div>
+        </div>
       </div>
-      <ul className="flex-1 py-3 space-y-0.5 overflow-y-auto">
-        {navItems.map(({ href, label, icon: Icon }) => {
-          const isActive = pathname === href || (href !== '/dashboard' && pathname.startsWith(href))
+
+      {/* Nav items */}
+      <ul className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto">
+        {navItems.map(({ href, label, icon: Icon, section }, idx) => {
+          const prevItem = navItems[idx - 1]
+          const showSection = section && section !== prevItem?.section
+
+          const isActive =
+            pathname === href ||
+            (href !== '/dashboard' && href !== '/people' && pathname.startsWith(href))
+
           return (
             <li key={href}>
+              {showSection && (
+                <p className="text-[10px] font-semibold text-indigo-400/60 uppercase tracking-widest px-3 pt-4 pb-1.5">
+                  {section}
+                </p>
+              )}
               <Link
                 href={href}
                 onClick={() => setMobileOpen(false)}
                 className={cn(
-                  'flex items-center gap-3 px-4 py-2 text-sm rounded-none transition-colors',
+                  'flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-150',
                   isActive
-                    ? 'bg-gray-100 text-gray-900 font-medium border-l-2 border-gray-900'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 border-l-2 border-transparent'
+                    ? 'bg-indigo-500/20 text-white font-medium border border-indigo-400/30 shadow-sm shadow-indigo-900/20'
+                    : 'text-slate-300 hover:bg-white/5 hover:text-white border border-transparent'
                 )}
               >
-                <Icon size={16} className="shrink-0" />
+                <Icon
+                  size={15}
+                  className={cn(
+                    'shrink-0 transition-colors',
+                    isActive ? 'text-indigo-300' : 'text-slate-400'
+                  )}
+                />
                 <span className="truncate">{label}</span>
               </Link>
             </li>
           )
         })}
       </ul>
+
+      <div className="px-4 py-3 border-t border-white/10">
+        <p className="text-[10px] text-slate-500">v1 · No auth</p>
+      </div>
     </nav>
   )
 
   return (
     <>
-      {/* Mobile toggle button */}
+      {/* Mobile toggle */}
       <button
-        className="md:hidden fixed top-3 left-3 z-50 p-2 rounded-md bg-white border border-gray-200 shadow-sm"
+        className="md:hidden fixed top-3 left-3 z-50 p-2 rounded-lg bg-slate-800 border border-slate-700 shadow-lg text-white"
         onClick={() => setMobileOpen(!mobileOpen)}
         aria-label="Toggle navigation"
       >
@@ -65,7 +100,7 @@ export function Sidebar() {
       {/* Mobile overlay */}
       {mobileOpen && (
         <div
-          className="md:hidden fixed inset-0 z-40 bg-black/20"
+          className="md:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
           onClick={() => setMobileOpen(false)}
         />
       )}
@@ -73,7 +108,8 @@ export function Sidebar() {
       {/* Mobile sidebar */}
       <aside
         className={cn(
-          'md:hidden fixed top-0 left-0 z-40 h-full w-60 bg-white border-r border-gray-200 shadow-lg transition-transform duration-200',
+          'md:hidden fixed top-0 left-0 z-40 h-full w-64 shadow-xl transition-transform duration-200',
+          'bg-slate-900',
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
@@ -81,7 +117,7 @@ export function Sidebar() {
       </aside>
 
       {/* Desktop sidebar */}
-      <aside className="hidden md:flex md:flex-col md:w-60 md:shrink-0 bg-white border-r border-gray-200 h-screen sticky top-0 print:hidden">
+      <aside className="hidden md:flex md:flex-col md:w-60 md:shrink-0 h-screen sticky top-0 print:hidden bg-slate-900">
         <NavContent />
       </aside>
     </>

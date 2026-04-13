@@ -37,7 +37,7 @@ function PersonRow({
 
   if (editing) {
     return (
-      <tr className="bg-blue-50/30">
+      <tr className="bg-indigo-50/40">
         <td className="px-4 py-2">
           <Input
             value={firstName}
@@ -58,7 +58,7 @@ function PersonRow({
           <div className="flex gap-1">
             <Button
               size="sm"
-              className="h-7 w-7 p-0"
+              className="h-7 w-7 p-0 bg-indigo-600 hover:bg-indigo-700 text-white"
               onClick={handleSave}
               disabled={saving || !firstName.trim() || !lastName.trim()}
               title="Save"
@@ -85,15 +85,15 @@ function PersonRow({
   }
 
   return (
-    <tr className="hover:bg-gray-50">
-      <td className="px-4 py-2.5 text-sm text-gray-900">{person.first_name}</td>
-      <td className="px-4 py-2.5 text-sm text-gray-900">{person.last_name}</td>
-      <td className="px-4 py-2.5">
+    <tr className="hover:bg-slate-50 transition-colors">
+      <td className="px-4 py-3 text-sm text-slate-800 font-medium">{person.first_name}</td>
+      <td className="px-4 py-3 text-sm text-slate-800 font-medium">{person.last_name}</td>
+      <td className="px-4 py-3">
         <div className="flex gap-1">
           <Button
             variant="ghost"
             size="sm"
-            className="h-7 w-7 p-0 text-gray-400 hover:text-gray-700"
+            className="h-7 w-7 p-0 text-slate-300 hover:text-indigo-600 hover:bg-indigo-50"
             onClick={() => setEditing(true)}
             title="Edit"
           >
@@ -102,7 +102,7 @@ function PersonRow({
           <Button
             variant="ghost"
             size="sm"
-            className="h-7 w-7 p-0 text-red-400 hover:text-red-600"
+            className="h-7 w-7 p-0 text-slate-300 hover:text-red-500 hover:bg-red-50"
             onClick={handleDelete}
             title="Delete"
           >
@@ -162,21 +162,27 @@ export function PeopleTable() {
   }
 
   if (loading) {
-    return <div className="animate-pulse space-y-2">{Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-10 bg-gray-100 rounded" />)}</div>
+    return (
+      <div className="animate-pulse space-y-2">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="h-10 bg-slate-100 rounded-xl" />
+        ))}
+      </div>
+    )
   }
 
   return (
     <div>
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
         <table className="w-full text-left">
           <thead>
-            <tr className="border-b border-gray-200 bg-gray-50">
-              <th className="px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">First Name</th>
-              <th className="px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">Last Name</th>
-              <th className="px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">Actions</th>
+            <tr className="border-b border-slate-200 bg-slate-50">
+              <th className="px-4 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest">First Name</th>
+              <th className="px-4 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Last Name</th>
+              <th className="px-4 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-slate-100">
             {people.map((person) => (
               <PersonRow
                 key={person.id}
@@ -187,7 +193,7 @@ export function PeopleTable() {
             ))}
             {people.length === 0 && (
               <tr>
-                <td colSpan={3} className="px-4 py-6 text-center text-sm text-gray-500">
+                <td colSpan={3} className="px-4 py-8 text-center text-sm text-slate-400">
                   No people yet. Add someone below.
                 </td>
               </tr>
@@ -199,11 +205,11 @@ export function PeopleTable() {
       {/* Add person */}
       <div className="mt-4">
         {adding ? (
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <h3 className="text-sm font-medium text-gray-900 mb-3">Add Person</h3>
+          <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+            <h3 className="text-sm font-semibold text-slate-800 mb-3">Add Person</h3>
             <div className="grid grid-cols-2 gap-3 mb-3">
               <div>
-                <Label htmlFor="first">First Name</Label>
+                <Label htmlFor="first" className="text-xs font-semibold text-slate-500">First Name</Label>
                 <Input
                   id="first"
                   value={newFirst}
@@ -214,7 +220,7 @@ export function PeopleTable() {
                 />
               </div>
               <div>
-                <Label htmlFor="last">Last Name</Label>
+                <Label htmlFor="last" className="text-xs font-semibold text-slate-500">Last Name</Label>
                 <Input
                   id="last"
                   value={newLast}
@@ -225,7 +231,7 @@ export function PeopleTable() {
               </div>
             </div>
             <div className="flex gap-2">
-              <Button size="sm" onClick={handleAdd} disabled={saving || !newFirst.trim() || !newLast.trim()}>
+              <Button size="sm" onClick={handleAdd} disabled={saving || !newFirst.trim() || !newLast.trim()} className="bg-indigo-600 hover:bg-indigo-700 text-white">
                 {saving ? 'Adding…' : 'Add Person'}
               </Button>
               <Button size="sm" variant="outline" onClick={() => { setAdding(false); setNewFirst(''); setNewLast('') }}>

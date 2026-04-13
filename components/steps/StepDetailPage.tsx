@@ -217,10 +217,10 @@ export function StepDetailPage({ slug }: StepDetailPageProps) {
   if (loading) {
     return (
       <div className="p-6 space-y-4">
-        <div className="h-8 bg-gray-100 rounded animate-pulse w-48" />
-        <div className="h-4 bg-gray-100 rounded animate-pulse w-32" />
+        <div className="h-8 bg-slate-100 rounded-xl animate-pulse w-48" />
+        <div className="h-4 bg-slate-100 rounded-xl animate-pulse w-32" />
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="h-16 bg-gray-100 rounded animate-pulse" />
+          <div key={i} className="h-16 bg-slate-100 rounded-xl animate-pulse" />
         ))}
       </div>
     )
@@ -229,7 +229,7 @@ export function StepDetailPage({ slug }: StepDetailPageProps) {
   if (!step) {
     return (
       <div className="p-6">
-        <p className="text-gray-500">Step not found.</p>
+        <p className="text-slate-400">Step not found.</p>
       </div>
     )
   }
@@ -253,8 +253,8 @@ export function StepDetailPage({ slug }: StepDetailPageProps) {
       <div className="print:hidden">
         <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
           <div className="flex-1 min-w-0">
-            <h1 className="text-xl font-semibold text-gray-900">{step.title}</h1>
-            <p className="text-xs text-gray-500 mt-0.5">Step {step.order_index} of 6</p>
+            <h1 className="text-xl font-bold text-slate-900">{step.title}</h1>
+            <p className="text-xs text-slate-400 mt-0.5 font-medium">Step {step.order_index} of 6</p>
           </div>
           <div className="flex items-center gap-2">
             <Select value={step.status} onValueChange={updateStepStatus}>
@@ -275,9 +275,9 @@ export function StepDetailPage({ slug }: StepDetailPageProps) {
         </div>
 
         {/* Owner row */}
-        <div className="flex flex-wrap gap-4 mb-6 p-3 bg-gray-50 rounded-lg border border-gray-200">
+        <div className="flex flex-wrap gap-4 mb-6 p-4 bg-indigo-50/50 rounded-xl border border-indigo-100">
           <div className="flex-1 min-w-48">
-            <p className="text-xs font-medium text-gray-500 mb-1">Accountable Owner</p>
+            <p className="text-[11px] font-bold text-indigo-500 uppercase tracking-widest mb-1.5">Accountable Owner</p>
             <OwnerSelect
               people={people}
               value={step.owner_person_id}
@@ -287,7 +287,7 @@ export function StepDetailPage({ slug }: StepDetailPageProps) {
             />
           </div>
           <div className="flex-1 min-w-48">
-            <p className="text-xs font-medium text-gray-500 mb-1">Metric Owner</p>
+            <p className="text-[11px] font-bold text-indigo-500 uppercase tracking-widest mb-1.5">Metric Owner</p>
             <OwnerSelect
               people={people}
               value={step.metric_owner_person_id}
@@ -301,14 +301,15 @@ export function StepDetailPage({ slug }: StepDetailPageProps) {
         {/* Summary cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
           {[
-            { label: 'Status', value: <StatusBadge status={step.status} /> },
-            { label: 'AI Skills', value: items.filter((i) => i.item_type === 'ai_skill').length },
-            { label: 'Non-AI Components', value: items.filter((i) => i.item_type === 'non_ai_infrastructure').length },
-            { label: 'Orchestration', value: items.filter((i) => i.item_type === 'orchestration_component').length },
-          ].map(({ label, value }) => (
-            <div key={label} className="bg-white border border-gray-200 rounded-lg p-3">
-              <p className="text-xs text-gray-500 font-medium">{label}</p>
-              <div className="mt-1 text-sm font-medium text-gray-900">{value}</div>
+            { label: 'Status', value: <StatusBadge status={step.status} />, accent: 'top-0 left-0 right-0 h-0.5 bg-indigo-400' },
+            { label: 'AI Skills', value: items.filter((i) => i.item_type === 'ai_skill').length, accent: 'top-0 left-0 right-0 h-0.5 bg-blue-400' },
+            { label: 'Non-AI Components', value: items.filter((i) => i.item_type === 'non_ai_infrastructure').length, accent: 'top-0 left-0 right-0 h-0.5 bg-slate-400' },
+            { label: 'Orchestration', value: items.filter((i) => i.item_type === 'orchestration_component').length, accent: 'top-0 left-0 right-0 h-0.5 bg-purple-400' },
+          ].map(({ label, value, accent }) => (
+            <div key={label} className="bg-white border border-slate-200 rounded-xl p-3 shadow-sm relative overflow-hidden">
+              <div className={`absolute ${accent}`} />
+              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">{label}</p>
+              <div className="mt-1.5 text-sm font-semibold text-slate-900">{value}</div>
             </div>
           ))}
         </div>
@@ -316,7 +317,7 @@ export function StepDetailPage({ slug }: StepDetailPageProps) {
 
       {/* Sections */}
       <div className="space-y-2 mb-6">
-        <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 print:hidden">Sections</h2>
+        <h2 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3 print:hidden">Sections</h2>
         {sections.map((section, idx) => (
           <SectionAccordion
             key={section.id}
@@ -355,18 +356,18 @@ export function StepDetailPage({ slug }: StepDetailPageProps) {
       {/* Skills / Components */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+          <h2 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
             Skills &amp; Components ({items.length})
           </h2>
-          <div className="flex gap-2 text-xs text-gray-500 print:hidden">
-            <span className="flex items-center gap-1">
-              <span className="inline-block w-2 h-2 rounded-full bg-blue-400" /> AI Skills: {items.filter((i) => i.item_type === 'ai_skill').length}
+          <div className="flex gap-3 text-xs text-slate-400 print:hidden">
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block w-2 h-2 rounded-full bg-blue-400" /> AI: {items.filter((i) => i.item_type === 'ai_skill').length}
             </span>
-            <span className="flex items-center gap-1">
-              <span className="inline-block w-2 h-2 rounded-full bg-gray-400" /> Non-AI: {items.filter((i) => i.item_type === 'non_ai_infrastructure').length}
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block w-2 h-2 rounded-full bg-slate-400" /> Non-AI: {items.filter((i) => i.item_type === 'non_ai_infrastructure').length}
             </span>
-            <span className="flex items-center gap-1">
-              <span className="inline-block w-2 h-2 rounded-full bg-purple-400" /> Orchestration: {items.filter((i) => i.item_type === 'orchestration_component').length}
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block w-2 h-2 rounded-full bg-purple-400" /> Orch: {items.filter((i) => i.item_type === 'orchestration_component').length}
             </span>
           </div>
         </div>
@@ -387,7 +388,7 @@ export function StepDetailPage({ slug }: StepDetailPageProps) {
           ))}
 
           {items.length === 0 && !addingItem && (
-            <p className="text-sm text-gray-500 py-4 text-center border border-dashed border-gray-200 rounded-lg">
+            <p className="text-sm text-slate-400 py-6 text-center border border-dashed border-slate-200 rounded-xl">
               No skills or components yet.
             </p>
           )}
@@ -430,8 +431,8 @@ export function StepDetailPage({ slug }: StepDetailPageProps) {
         {/* Add item */}
         <div className="mt-3 print:hidden">
           {addingItem ? (
-            <div className="border border-blue-200 rounded-lg p-4 bg-blue-50/30 mt-2">
-              <h3 className="text-sm font-medium text-gray-900 mb-3">Add Skill / Component</h3>
+            <div className="border border-indigo-200 rounded-xl p-4 bg-indigo-50/30 shadow-sm mt-2">
+              <h3 className="text-sm font-semibold text-slate-800 mb-3">Add Skill / Component</h3>
               <ItemForm
                 people={people}
                 onSave={addItem}

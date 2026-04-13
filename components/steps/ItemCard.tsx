@@ -10,9 +10,9 @@ import { ChevronDown, ChevronRight, Pencil, Trash2, ArrowUp, ArrowDown } from 'l
 import { cn } from '@/lib/utils'
 
 const itemTypeBadgeClass: Record<string, string> = {
-  ai_skill: 'bg-blue-50 text-blue-700 border-blue-200',
-  non_ai_infrastructure: 'bg-gray-100 text-gray-700 border-gray-200',
-  orchestration_component: 'bg-purple-50 text-purple-700 border-purple-200',
+  ai_skill: 'bg-blue-50 text-blue-700 border-blue-200 font-semibold',
+  non_ai_infrastructure: 'bg-slate-100 text-slate-600 border-slate-200 font-semibold',
+  orchestration_component: 'bg-purple-50 text-purple-700 border-purple-200 font-semibold',
 }
 
 function docToText(doc: object): string {
@@ -28,8 +28,8 @@ function Field({ label, value }: { label: string; value: string }) {
   if (!value) return null
   return (
     <div>
-      <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">{label}</p>
-      <p className="text-sm text-gray-700 mt-0.5">{value}</p>
+      <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest">{label}</p>
+      <p className="text-sm text-slate-700 mt-0.5 leading-relaxed">{value}</p>
     </div>
   )
 }
@@ -62,7 +62,7 @@ export function ItemCard({ item, people, isFirst, isLast, onUpdate, onDelete, on
 
   if (editing) {
     return (
-      <div className="border border-blue-200 rounded-lg p-4 bg-blue-50/30">
+      <div className="border border-indigo-200 rounded-xl p-4 bg-indigo-50/30 shadow-sm">
         <ItemForm
           item={item}
           people={people}
@@ -77,17 +77,17 @@ export function ItemCard({ item, people, isFirst, isLast, onUpdate, onDelete, on
   }
 
   return (
-    <div className="border border-gray-200 rounded-lg bg-white">
+    <div className="border border-slate-200 rounded-xl bg-white shadow-sm">
       <div
-        className="flex items-start gap-3 px-4 py-3 cursor-pointer hover:bg-gray-50"
+        className="flex items-start gap-3 px-4 py-3 cursor-pointer hover:bg-slate-50 rounded-xl transition-colors"
         onClick={() => setExpanded(!expanded)}
       >
-        <div className="mt-0.5 text-gray-400">
-          {expanded ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
+        <div className="mt-0.5 text-slate-400 shrink-0">
+          {expanded ? <ChevronDown size={15} className="text-indigo-400" /> : <ChevronRight size={15} />}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm font-medium text-gray-900">{item.title}</span>
+            <span className="text-sm font-semibold text-slate-800">{item.title}</span>
             <Badge
               variant="outline"
               className={cn('text-xs', itemTypeBadgeClass[item.item_type])}
@@ -96,16 +96,16 @@ export function ItemCard({ item, people, isFirst, isLast, onUpdate, onDelete, on
             </Badge>
             <StatusBadge status={item.status} />
           </div>
-          <p className="text-xs text-gray-500 mt-0.5">
+          <p className="text-xs text-slate-400 mt-0.5">
             {USAGE_MODE_LABELS[item.usage_mode]}
             {owner && ` · ${owner.first_name} ${owner.last_name}`}
           </p>
         </div>
-        <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center gap-0.5 shrink-0" onClick={(e) => e.stopPropagation()}>
           <Button
             variant="ghost"
             size="sm"
-            className="h-7 w-7 p-0 text-gray-400 hover:text-gray-700"
+            className="h-7 w-7 p-0 text-slate-300 hover:text-slate-600 hover:bg-slate-100"
             onClick={onMoveUp}
             disabled={isFirst}
             title="Move up"
@@ -115,7 +115,7 @@ export function ItemCard({ item, people, isFirst, isLast, onUpdate, onDelete, on
           <Button
             variant="ghost"
             size="sm"
-            className="h-7 w-7 p-0 text-gray-400 hover:text-gray-700"
+            className="h-7 w-7 p-0 text-slate-300 hover:text-slate-600 hover:bg-slate-100"
             onClick={onMoveDown}
             disabled={isLast}
             title="Move down"
@@ -125,7 +125,7 @@ export function ItemCard({ item, people, isFirst, isLast, onUpdate, onDelete, on
           <Button
             variant="ghost"
             size="sm"
-            className="h-7 w-7 p-0 text-gray-400 hover:text-gray-700"
+            className="h-7 w-7 p-0 text-slate-300 hover:text-indigo-600 hover:bg-indigo-50"
             onClick={() => setEditing(true)}
             title="Edit"
           >
@@ -134,7 +134,7 @@ export function ItemCard({ item, people, isFirst, isLast, onUpdate, onDelete, on
           <Button
             variant="ghost"
             size="sm"
-            className="h-7 w-7 p-0 text-red-400 hover:text-red-600"
+            className="h-7 w-7 p-0 text-slate-300 hover:text-red-500 hover:bg-red-50"
             onClick={handleDelete}
             disabled={deleting}
             title="Delete"
@@ -145,7 +145,7 @@ export function ItemCard({ item, people, isFirst, isLast, onUpdate, onDelete, on
       </div>
 
       {expanded && (
-        <div className="px-4 pb-4 border-t border-gray-100 pt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="px-4 pb-4 border-t border-slate-100 pt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
           <Field label="Description" value={docToText(item.description_json)} />
           <Field label="Usage Mode" value={USAGE_MODE_LABELS[item.usage_mode]} />
           <Field label="Inputs" value={docToText(item.inputs_json)} />

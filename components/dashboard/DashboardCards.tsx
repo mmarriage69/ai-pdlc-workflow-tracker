@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { WorkflowStep, StepItem, Person, Status, NAV_STEPS } from '@/lib/types'
 import { StatusBadge } from '@/components/steps/StatusBadge'
 import Link from 'next/link'
+import { cn } from '@/lib/utils'
 
 interface DashboardData {
   steps: WorkflowStep[]
@@ -12,13 +13,40 @@ interface DashboardData {
   people: Person[]
 }
 
-function StatCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
+function StatCard({
+  label,
+  value,
+  sub,
+  accent,
+}: {
+  label: string
+  value: string | number
+  sub?: string
+  accent?: 'indigo' | 'emerald' | 'amber' | 'slate' | 'blue' | 'purple'
+}) {
+  const accentBar: Record<string, string> = {
+    indigo: 'bg-indigo-500',
+    emerald: 'bg-emerald-500',
+    amber: 'bg-amber-400',
+    slate: 'bg-slate-400',
+    blue: 'bg-blue-500',
+    purple: 'bg-purple-500',
+  }
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-4">
-      <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">{label}</p>
-      <p className="text-2xl font-semibold text-gray-900 mt-1">{value}</p>
-      {sub && <p className="text-xs text-gray-500 mt-0.5">{sub}</p>}
+    <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm relative overflow-hidden">
+      {accent && (
+        <div className={cn('absolute top-0 left-0 right-0 h-0.5', accentBar[accent])} />
+      )}
+      <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-widest">{label}</p>
+      <p className="text-2xl font-bold text-slate-900 mt-1.5 tabular-nums">{value}</p>
+      {sub && <p className="text-xs text-slate-400 mt-0.5">{sub}</p>}
     </div>
+  )
+}
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <h2 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3">{children}</h2>
   )
 }
 
@@ -47,7 +75,7 @@ export function DashboardCards() {
     return (
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="bg-white rounded-lg border border-gray-200 p-4 animate-pulse h-20" />
+          <div key={i} className="bg-white rounded-xl border border-slate-200 p-4 animate-pulse h-20 shadow-sm" />
         ))}
       </div>
     )
@@ -80,47 +108,47 @@ export function DashboardCards() {
   )
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Progress */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4">
-        <div className="flex items-center justify-between mb-2">
-          <p className="text-sm font-medium text-gray-900">Overall Completion</p>
-          <p className="text-sm font-semibold text-gray-900">{completePct}%</p>
+      <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-sm font-semibold text-slate-800">Overall Completion</p>
+          <p className="text-2xl font-bold text-slate-900 tabular-nums">{completePct}%</p>
         </div>
-        <div className="w-full bg-gray-100 rounded-full h-2">
+        <div className="w-full bg-slate-100 rounded-full h-2.5">
           <div
-            className="bg-green-500 h-2 rounded-full transition-all"
+            className="bg-indigo-500 h-2.5 rounded-full transition-all duration-500"
             style={{ width: `${completePct}%` }}
           />
         </div>
-        <p className="text-xs text-gray-500 mt-1">{completeSteps} of {steps.length} steps complete</p>
+        <p className="text-xs text-slate-400 mt-2">{completeSteps} of {steps.length} steps complete</p>
       </div>
 
       {/* Step stats */}
       <div>
-        <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Workflow Steps</h2>
+        <SectionLabel>Workflow Steps</SectionLabel>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <StatCard label="Total Steps" value={steps.length} />
-          <StatCard label="Pending" value={statusCounts.Pending} />
-          <StatCard label="In Development" value={statusCounts['In Development']} />
-          <StatCard label="Complete" value={statusCounts.Complete} />
+          <StatCard label="Total Steps" value={steps.length} accent="indigo" />
+          <StatCard label="Pending" value={statusCounts.Pending} accent="amber" />
+          <StatCard label="In Development" value={statusCounts['In Development']} accent="blue" />
+          <StatCard label="Complete" value={statusCounts.Complete} accent="emerald" />
         </div>
       </div>
 
       {/* Item stats */}
       <div>
-        <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Skills & Components</h2>
+        <SectionLabel>Skills &amp; Components</SectionLabel>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <StatCard label="Total Items" value={totalItems} />
-          <StatCard label="AI Skills" value={aiSkills} />
-          <StatCard label="Non-AI Infrastructure" value={nonAI} />
-          <StatCard label="Orchestration" value={orchestration} />
+          <StatCard label="Total Items" value={totalItems} accent="slate" />
+          <StatCard label="AI Skills" value={aiSkills} accent="blue" />
+          <StatCard label="Non-AI Infrastructure" value={nonAI} accent="slate" />
+          <StatCard label="Orchestration" value={orchestration} accent="purple" />
         </div>
       </div>
 
       {/* Assignment stats */}
       <div>
-        <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Assignments</h2>
+        <SectionLabel>Assignments</SectionLabel>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <StatCard label="Unassigned Step Owners" value={unassignedOwners} />
           <StatCard label="Unassigned Metric Owners" value={unassignedMetricOwners} />
@@ -131,31 +159,28 @@ export function DashboardCards() {
 
       {/* Attention list */}
       <div>
-        <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Steps Needing Attention</h2>
+        <SectionLabel>Steps Needing Attention</SectionLabel>
         {needingAttention.length === 0 ? (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-sm text-green-700">
+          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-sm text-emerald-700 font-medium">
             All steps are complete or ignored.
           </div>
         ) : (
-          <div className="bg-white rounded-lg border border-gray-200 divide-y divide-gray-100">
-            {needingAttention.map((step) => {
-              const navStep = NAV_STEPS.find((n) => n.slug === step.slug)
-              return (
-                <Link
-                  key={step.id}
-                  href={`/${step.slug}`}
-                  className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition-colors"
-                >
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">{step.title}</p>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      Step {step.order_index} of {NAV_STEPS.length}
-                    </p>
-                  </div>
-                  <StatusBadge status={step.status} />
-                </Link>
-              )
-            })}
+          <div className="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100 shadow-sm overflow-hidden">
+            {needingAttention.map((step) => (
+              <Link
+                key={step.id}
+                href={`/${step.slug}`}
+                className="flex items-center justify-between px-4 py-3.5 hover:bg-indigo-50/50 transition-colors group"
+              >
+                <div>
+                  <p className="text-sm font-medium text-slate-800 group-hover:text-indigo-700 transition-colors">{step.title}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Step {step.order_index} of {NAV_STEPS.length}
+                  </p>
+                </div>
+                <StatusBadge status={step.status} />
+              </Link>
+            ))}
           </div>
         )}
       </div>

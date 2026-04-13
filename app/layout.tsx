@@ -1,11 +1,11 @@
 import type { Metadata } from 'next'
-import { Geist } from 'next/font/google'
+import { Inter } from 'next/font/google'
 import './globals.css'
 import { Sidebar } from '@/components/layout/Sidebar'
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
+const inter = Inter({
   subsets: ['latin'],
+  variable: '--font-inter',
 })
 
 export const metadata: Metadata = {
@@ -15,8 +15,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${geistSans.variable} h-full antialiased`}>
-      <body className="h-full flex bg-gray-50 text-gray-900">
+    <html lang="en" className={`${inter.variable} h-full antialiased`}>
+      <body className="h-full flex bg-slate-50 text-slate-900">
         <Sidebar />
         <main className="flex-1 overflow-y-auto min-h-screen md:pt-0 pt-12">
           {children}

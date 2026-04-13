@@ -54,6 +54,7 @@ function ToolbarButton({
 
 export function RichTextEditor({ content, onChange, editable = true, className }: RichTextEditorProps) {
   const editor = useEditor({
+    immediatelyRender: false,
     extensions: [
       StarterKit,
       Underline,
