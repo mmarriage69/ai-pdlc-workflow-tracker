@@ -443,6 +443,15 @@ export function StepDetailPage({ slug }: StepDetailPageProps) {
                   {docToText(item.notes_json) && (
                     <p className="text-xs text-gray-600 mt-1"><strong>Notes:</strong> {docToText(item.notes_json)}</p>
                   )}
+                  {item.item_type === 'ai_skill' && item.detail_json && Object.keys(item.detail_json).length > 0 && (
+                    <p className="text-xs text-gray-600 mt-1"><strong>Detailed Explanation:</strong> {docToText(item.detail_json)}</p>
+                  )}
+                  {item.item_type === 'ai_skill' && item.prompt_text && (
+                    <div className="mt-1">
+                      <p className="text-xs text-gray-600 font-bold">Skill Creation Prompt:</p>
+                      <pre className="text-xs text-gray-700 whitespace-pre-wrap mt-0.5 font-mono">{item.prompt_text}</pre>
+                    </div>
+                  )}
                 </div>
               )
             })}

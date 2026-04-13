@@ -53,6 +53,8 @@ export interface StepItem {
   inputs_json: object
   outputs_json: object
   notes_json: object
+  detail_json: object | null
+  prompt_text: string | null
   order_index: number
   created_at: string
   updated_at: string

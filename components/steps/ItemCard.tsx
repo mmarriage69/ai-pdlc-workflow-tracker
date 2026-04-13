@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { StepItem, Person, ITEM_TYPE_LABELS, USAGE_MODE_LABELS } from '@/lib/types'
 import { StatusBadge } from './StatusBadge'
 import { ItemForm } from './ItemForm'
+import { RichTextEditor, RichTextDisplay } from '@/components/editor/RichTextEditor'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { ChevronDown, ChevronRight, Pencil, Trash2, ArrowUp, ArrowDown } from 'lucide-react'
@@ -50,6 +51,18 @@ export function ItemCard({ item, people, isFirst, isLast, onUpdate, onDelete, on
   const [editing, setEditing] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
+  // Detailed explanation sub-section
+  const [detailOpen, setDetailOpen] = useState(false)
+  const [detailEditing, setDetailEditing] = useState(false)
+  const [detailDraft, setDetailDraft] = useState<object>(item.detail_json ?? {})
+  const [detailSaving, setDetailSaving] = useState(false)
+
+  // Skill creation prompt sub-section
+  const [promptOpen, setPromptOpen] = useState(false)
+  const [promptEditing, setPromptEditing] = useState(false)
+  const [promptDraft, setPromptDraft] = useState(item.prompt_text ?? '')
+  const [promptSaving, setPromptSaving] = useState(false)
+
   const owner = people.find((p) => p.id === item.owner_person_id)
   const builder = people.find((p) => p.id === item.builder_person_id)
 
@@ -58,6 +71,20 @@ export function ItemCard({ item, people, isFirst, isLast, onUpdate, onDelete, on
     setDeleting(true)
     await onDelete()
     setDeleting(false)
+  }
+
+  async function saveDetail() {
+    setDetailSaving(true)
+    await onUpdate({ detail_json: detailDraft })
+    setDetailSaving(false)
+    setDetailEditing(false)
+  }
+
+  async function savePrompt() {
+    setPromptSaving(true)
+    await onUpdate({ prompt_text: promptDraft })
+    setPromptSaving(false)
+    setPromptEditing(false)
   }
 
   if (editing) {
@@ -78,6 +105,7 @@ export function ItemCard({ item, people, isFirst, isLast, onUpdate, onDelete, on
 
   return (
     <div className="border border-slate-200 rounded-xl bg-white shadow-sm">
+      {/* Card header row */}
       <div
         className="flex items-start gap-3 px-4 py-3 cursor-pointer hover:bg-slate-50 rounded-xl transition-colors"
         onClick={() => setExpanded(!expanded)}
@@ -144,15 +172,171 @@ export function ItemCard({ item, people, isFirst, isLast, onUpdate, onDelete, on
         </div>
       </div>
 
+      {/* Expanded body */}
       {expanded && (
-        <div className="px-4 pb-4 border-t border-slate-100 pt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Field label="Description" value={docToText(item.description_json)} />
-          <Field label="Usage Mode" value={USAGE_MODE_LABELS[item.usage_mode]} />
-          <Field label="Inputs" value={docToText(item.inputs_json)} />
-          <Field label="Outputs" value={docToText(item.outputs_json)} />
-          {owner && <Field label="Owner" value={`${owner.first_name} ${owner.last_name}`} />}
-          {builder && <Field label="Builder / Resource" value={`${builder.first_name} ${builder.last_name}`} />}
-          <Field label="Notes" value={docToText(item.notes_json)} />
+        <div className="border-t border-slate-100">
+          {/* Main fields grid */}
+          <div className="px-4 pt-3 pb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Field label="Description" value={docToText(item.description_json)} />
+            <Field label="Usage Mode" value={USAGE_MODE_LABELS[item.usage_mode]} />
+            <Field label="Inputs" value={docToText(item.inputs_json)} />
+            <Field label="Outputs" value={docToText(item.outputs_json)} />
+            {owner && <Field label="Owner" value={`${owner.first_name} ${owner.last_name}`} />}
+            {builder && <Field label="Builder / Resource" value={`${builder.first_name} ${builder.last_name}`} />}
+            <Field label="Notes" value={docToText(item.notes_json)} />
+          </div>
+
+          {/* AI-skill-only sub-sections */}
+          {item.item_type === 'ai_skill' && (
+            <div className="border-t border-slate-100 divide-y divide-slate-100">
+
+              {/* Detailed Explanation */}
+              <div>
+                <button
+                  type="button"
+                  className="w-full flex items-center justify-between px-4 py-2.5 text-left hover:bg-slate-50 transition-colors"
+                  onClick={() => setDetailOpen(!detailOpen)}
+                >
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">
+                    Detailed Explanation
+                  </span>
+                  <div className="flex items-center gap-2">
+                    {!detailEditing && (
+                      <span
+                        className="text-xs text-indigo-500 hover:text-indigo-700 font-medium"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setDetailDraft(item.detail_json ?? {})
+                          setDetailOpen(true)
+                          setDetailEditing(true)
+                        }}
+                      >
+                        Edit
+                      </span>
+                    )}
+                    {detailOpen
+                      ? <ChevronDown size={13} className="text-indigo-400" />
+                      : <ChevronRight size={13} className="text-slate-400" />}
+                  </div>
+                </button>
+                {detailOpen && (
+                  <div className="px-4 pb-3">
+                    {detailEditing ? (
+                      <>
+                        <RichTextEditor
+                          content={detailDraft}
+                          onChange={setDetailDraft}
+                          className="mb-2"
+                        />
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            onClick={saveDetail}
+                            disabled={detailSaving}
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                          >
+                            {detailSaving ? 'Saving…' : 'Save'}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setDetailEditing(false)
+                              setDetailDraft(item.detail_json ?? {})
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-sm">
+                        {item.detail_json && Object.keys(item.detail_json).length > 0
+                          ? <RichTextDisplay content={item.detail_json} />
+                          : <p className="text-slate-400 italic py-1">No detailed explanation yet.</p>}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Skill Creation Prompt */}
+              <div>
+                <button
+                  type="button"
+                  className="w-full flex items-center justify-between px-4 py-2.5 text-left hover:bg-slate-50 transition-colors"
+                  onClick={() => setPromptOpen(!promptOpen)}
+                >
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">
+                    Skill Creation Prompt
+                  </span>
+                  <div className="flex items-center gap-2">
+                    {!promptEditing && (
+                      <span
+                        className="text-xs text-indigo-500 hover:text-indigo-700 font-medium"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setPromptDraft(item.prompt_text ?? '')
+                          setPromptOpen(true)
+                          setPromptEditing(true)
+                        }}
+                      >
+                        Edit
+                      </span>
+                    )}
+                    {promptOpen
+                      ? <ChevronDown size={13} className="text-indigo-400" />
+                      : <ChevronRight size={13} className="text-slate-400" />}
+                  </div>
+                </button>
+                {promptOpen && (
+                  <div className="px-4 pb-3">
+                    {promptEditing ? (
+                      <>
+                        <textarea
+                          value={promptDraft}
+                          onChange={(e) => setPromptDraft(e.target.value)}
+                          className="w-full border border-slate-200 rounded-md p-2.5 text-sm font-mono text-slate-800 min-h-[160px] focus:outline-none focus:ring-2 focus:ring-indigo-400 mb-2 resize-y"
+                          placeholder="Paste your Claude Code prompt here…"
+                        />
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            onClick={savePrompt}
+                            disabled={promptSaving}
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                          >
+                            {promptSaving ? 'Saving…' : 'Save'}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setPromptEditing(false)
+                              setPromptDraft(item.prompt_text ?? '')
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </>
+                    ) : (
+                      <div>
+                        {item.prompt_text
+                          ? (
+                            <pre className="text-xs font-mono text-slate-700 bg-slate-50 border border-slate-200 rounded-md p-3 whitespace-pre-wrap overflow-x-auto">
+                              {item.prompt_text}
+                            </pre>
+                          )
+                          : <p className="text-sm text-slate-400 italic py-1">No prompt yet.</p>}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+            </div>
+          )}
         </div>
       )}
     </div>
