@@ -128,3 +128,99 @@
     @apply font-sans;
   }
 }
+
+/* TipTap prose styles */
+.ProseMirror {
+  outline: none;
+  min-height: 80px;
+}
+
+.ProseMirror p {
+  margin: 0.25rem 0;
+  line-height: 1.6;
+}
+
+.ProseMirror ul,
+.ProseMirror ol {
+  padding-left: 1.25rem;
+  margin: 0.25rem 0;
+}
+
+.ProseMirror ul {
+  list-style-type: disc;
+}
+
+.ProseMirror ol {
+  list-style-type: decimal;
+}
+
+.ProseMirror li {
+  margin: 0.1rem 0;
+  line-height: 1.5;
+}
+
+.ProseMirror a {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+.ProseMirror strong {
+  font-weight: 600;
+}
+
+.ProseMirror em {
+  font-style: italic;
+}
+
+.ProseMirror s {
+  text-decoration: line-through;
+}
+
+/* Print styles */
+@media print {
+  /* Hide navigation and interactive elements */
+  aside,
+  .print\:hidden {
+    display: none !important;
+  }
+
+  /* Reset layout for print */
+  body {
+    background: white !important;
+    display: block !important;
+  }
+
+  main {
+    overflow: visible !important;
+    padding-top: 0 !important;
+  }
+
+  /* Show all sections even if collapsed */
+  .section-accordion .hidden {
+    display: block !important;
+  }
+
+  /* Page break hints */
+  .section-accordion {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    margin-bottom: 0.5rem;
+  }
+
+  /* Expand accordion borders for print */
+  .section-accordion {
+    border: 1px solid #e5e7eb !important;
+    border-radius: 0.375rem;
+  }
+
+  /* Remove interactive shadows */
+  * {
+    box-shadow: none !important;
+  }
+
+  /* Full width */
+  .max-w-4xl,
+  .max-w-5xl {
+    max-width: 100% !important;
+  }
+}
