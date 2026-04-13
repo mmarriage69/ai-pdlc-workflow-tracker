@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { ChevronDown, ChevronRight } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { WorkflowStep, StepItem, ItemType } from '@/lib/types'
 import { cn } from '@/lib/utils'
@@ -66,6 +67,7 @@ export function WorkflowSwimlane() {
   const [steps, setSteps] = useState<WorkflowStep[]>([])
   const [items, setItems] = useState<Pick<StepItem, 'id' | 'workflow_step_id' | 'title' | 'item_type' | 'order_index'>[]>([])
   const [loading, setLoading] = useState(true)
+  const [open, setOpen] = useState(true)
 
   useEffect(() => {
     Promise.all([
@@ -81,13 +83,25 @@ export function WorkflowSwimlane() {
     })
   }, [])
 
-  if (loading) {
-    return (
-      <div className="h-72 rounded-xl border border-slate-200 bg-slate-50 animate-pulse" />
-    )
-  }
-
   return (
+    <div>
+      {/* Collapsible header */}
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-1.5 mb-3 group"
+      >
+        {open
+          ? <ChevronDown size={13} className="text-slate-400 group-hover:text-slate-600" />
+          : <ChevronRight size={13} className="text-slate-400 group-hover:text-slate-600" />
+        }
+        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest group-hover:text-slate-600 transition-colors">
+          Workflow Overview
+        </span>
+      </button>
+
+      {open && (loading ? (
+        <div className="h-72 rounded-xl border border-slate-200 bg-slate-50 animate-pulse" />
+      ) : (
     <div className="overflow-x-auto rounded-xl border border-slate-200 shadow-sm bg-white">
       {/* minWidth keeps the grid readable; users scroll horizontally on smaller screens */}
       <div style={{ minWidth: '1020px' }}>
@@ -182,6 +196,8 @@ export function WorkflowSwimlane() {
           <span className="ml-auto text-[10px] text-slate-400">Click a step header to open it</span>
         </div>
       </div>
+    </div>
+    ))}
     </div>
   )
 }

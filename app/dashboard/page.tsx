@@ -10,12 +10,7 @@ export default function DashboardPage() {
       <h1 className="text-xl font-bold text-slate-900">Dashboard</h1>
 
       {/* Swimlane workflow diagram */}
-      <div>
-        <h2 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3">
-          Workflow Overview
-        </h2>
-        <WorkflowSwimlane />
-      </div>
+      <WorkflowSwimlane />
 
       {/* Stats */}
       <DashboardCards />
