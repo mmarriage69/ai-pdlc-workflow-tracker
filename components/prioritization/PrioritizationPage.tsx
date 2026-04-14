@@ -5,7 +5,6 @@ import { supabase } from '@/lib/supabase'
 import { StepItem, Person } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { ItemCard } from '@/components/steps/ItemCard'
 import { PriorityTile } from './PriorityTile'
 import { ResourceLevelingModal } from './ResourceLevelingModal'
 import { Users } from 'lucide-react'
@@ -263,7 +262,7 @@ export function PrioritizationPage() {
         ))}
       </div>
 
-      {/* Not Yet Prioritized — uses expandable ItemCard */}
+      {/* Not Yet Prioritized — same fixed PriorityTile as grid */}
       <div
         className={cn(
           'rounded-xl border border-dashed border-slate-300 bg-slate-50/60 p-4 min-h-[120px] transition-colors',
@@ -279,7 +278,7 @@ export function PrioritizationPage() {
           Not Yet Prioritized ({unprioritized.length})
         </p>
         {unprioritized.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
             {unprioritized.map((item) => (
               <div
                 key={item.id}
@@ -288,19 +287,11 @@ export function PrioritizationPage() {
                 onDragEnd={handleDragEnd}
                 className="cursor-grab active:cursor-grabbing"
               >
-                <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-widest mb-0.5 px-1 truncate">
-                  {item.stepTitle}
-                </p>
-                <ItemCard
+                <PriorityTile
                   item={item}
                   people={people}
-                  isFirst={false}
-                  isLast={false}
-                  hideReorder={true}
                   onUpdate={async (data) => handleUpdateItem(item.id, data)}
                   onDelete={async () => handleDeleteItem(item.id)}
-                  onMoveUp={async () => {}}
-                  onMoveDown={async () => {}}
                   onPersonAdded={handlePersonAdded}
                 />
               </div>

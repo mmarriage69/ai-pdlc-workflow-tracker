@@ -17,13 +17,12 @@ const itemTypeBadgeClass: Record<string, string> = {
   orchestration_component: 'bg-purple-50 text-purple-700 border-purple-200 font-semibold',
 }
 
-function docToText(doc: object): string {
-  const d = doc as { content?: { content?: { content?: { text?: string }[] }[] }[] }
-  try {
-    return d.content?.map(b => b.content?.map(i => i.content?.map(t => t.text ?? '').join('') ?? '').join('\n') ?? '').join('\n') ?? ''
-  } catch {
-    return ''
-  }
+function docToText(node: unknown): string {
+  if (!node || typeof node !== 'object') return ''
+  const n = node as { text?: string; content?: unknown[] }
+  if (typeof n.text === 'string') return n.text
+  if (!Array.isArray(n.content)) return ''
+  return n.content.map(docToText).join(' ').replace(/\s+/g, ' ').trim()
 }
 
 function formatPriority(major: number | null, sub: string | null): string | null {

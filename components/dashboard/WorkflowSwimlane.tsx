@@ -8,22 +8,12 @@ import { WorkflowStep, StepItem, Person, ItemType, Status } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 // ── Plain-text extractor for detail_json (TipTap format) ─────────────────────
-function docToText(doc: object | null | undefined): string {
-  if (!doc) return ''
-  const d = doc as { content?: { content?: { content?: { text?: string }[] }[] }[] }
-  try {
-    return (
-      d.content
-        ?.map((b) =>
-          b.content
-            ?.map((i) => i.content?.map((t) => t.text ?? '').join('') ?? '')
-            .join('\n') ?? ''
-        )
-        .join('\n') ?? ''
-    )
-  } catch {
-    return ''
-  }
+function docToText(node: unknown): string {
+  if (!node || typeof node !== 'object') return ''
+  const n = node as { text?: string; content?: unknown[] }
+  if (typeof n.text === 'string') return n.text
+  if (!Array.isArray(n.content)) return ''
+  return n.content.map(docToText).join(' ').replace(/\s+/g, ' ').trim()
 }
 
 // ── Swimlane row definitions ───────────────────────────────────────────────
