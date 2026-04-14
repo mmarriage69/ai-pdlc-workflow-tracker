@@ -40,6 +40,9 @@ export function ResourceLevelingModal({
   onItemUpdate,
 }: ResourceLevelingModalProps) {
   const [drillDown, setDrillDown] = useState<DrillDown | null>(null)
+  // Snapshot the IDs of items when a drilldown is opened, so items remain
+  // visible even after their builder_person_id changes (don't disappear on edit)
+  const [drillDownItemIds, setDrillDownItemIds] = useState<string[]>([])
 
   function countForPersonPriority(personId: string, major: number) {
     return items.filter(
@@ -54,9 +57,12 @@ export function ResourceLevelingModal({
     ).length
   }
 
-  function itemsForDrillDown(personId: string, major: number) {
-    return items.filter(
-      (i) => i.builder_person_id === personId && i.priority_major === major,
+  function openDrillDown(personId: string, major: number) {
+    setDrillDown({ personId, major })
+    setDrillDownItemIds(
+      items
+        .filter((i) => i.builder_person_id === personId && i.priority_major === major)
+        .map((i) => i.id),
     )
   }
 
@@ -64,13 +70,15 @@ export function ResourceLevelingModal({
     ? people.find((p) => p.id === drillDown.personId)
     : null
 
-  const drillDownItemList = drillDown
-    ? itemsForDrillDown(drillDown.personId, drillDown.major)
-    : []
+  // Look items up by captured IDs so they remain even after builder changes
+  const drillDownItemList = drillDownItemIds
+    .map((id) => items.find((i) => i.id === id))
+    .filter(Boolean) as EnrichedItem[]
 
   function handleClose() {
     onClose()
     setDrillDown(null)
+    setDrillDownItemIds([])
   }
 
   return (
@@ -92,7 +100,7 @@ export function ResourceLevelingModal({
               variant="ghost"
               size="sm"
               className="mb-4 gap-2 text-slate-500 -ml-2"
-              onClick={() => setDrillDown(null)}
+              onClick={() => { setDrillDown(null); setDrillDownItemIds([]) }}
             >
               <ArrowLeft size={14} />
               Back to overview
@@ -189,12 +197,7 @@ export function ResourceLevelingModal({
                             <td key={p} className="text-center py-2.5 px-3">
                               {count > 0 ? (
                                 <button
-                                  onClick={() =>
-                                    setDrillDown({
-                                      personId: person.id,
-                                      major: p,
-                                    })
-                                  }
+                                  onClick={() => openDrillDown(person.id, p)}
                                   className={cn(
                                     'inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold transition-colors',
                                     cellOverloaded
@@ -276,7 +279,14 @@ function DrillDownRow({
           disabled={saving}
         >
           <SelectTrigger className="h-8 text-xs">
-            <SelectValue placeholder="Unassigned" />
+            <SelectValue placeholder="Unassigned">
+              {(() => {
+                const bid = item.builder_person_id
+                if (!bid) return 'Unassigned'
+                const found = people.find((p) => p.id === bid)
+                return found ? `${found.first_name} ${found.last_name}` : 'Unassigned'
+              })()}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="__none__">Unassigned</SelectItem>

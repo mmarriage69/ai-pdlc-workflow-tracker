@@ -102,7 +102,14 @@ export function OwnerSelect({
     <>
       <Select value={value ?? '__none__'} onValueChange={handleValueChange}>
         <SelectTrigger className={className}>
-          <SelectValue placeholder={placeholder} />
+          {/* Explicitly render the display text to avoid Radix falling back to the raw UUID */}
+          <SelectValue placeholder={placeholder}>
+            {(() => {
+              if (!value || value === '__none__') return placeholder
+              const found = people.find((p) => p.id === value)
+              return found ? `${found.first_name} ${found.last_name}` : placeholder
+            })()}
+          </SelectValue>
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="__none__">{placeholder}</SelectItem>
