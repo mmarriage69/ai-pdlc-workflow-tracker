@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
-import { WorkflowStep, StepItem, Person, ItemType } from '@/lib/types'
+import { WorkflowStep, StepItem, Person, ItemType, Status } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 // ── Swimlane row definitions ───────────────────────────────────────────────
@@ -55,7 +55,7 @@ const LANES: {
 
 type StickyItem = Pick<StepItem,
   'id' | 'workflow_step_id' | 'title' | 'item_type' | 'order_index' |
-  'owner_person_id' | 'priority_major' | 'priority_sub'
+  'owner_person_id' | 'priority_major' | 'priority_sub' | 'status'
 >
 
 function formatPriority(major: number | null, sub: string | null): string | null {
@@ -63,10 +63,26 @@ function formatPriority(major: number | null, sub: string | null): string | null
   return `${major}${sub ?? ''}`
 }
 
+const statusPillClass: Record<Status, string> = {
+  'Pending':        'bg-amber-500 text-white',
+  'In Development': 'bg-indigo-600 text-white',
+  'Complete':       'bg-emerald-600 text-white',
+  'Ignore':         'bg-slate-500 text-white',
+}
+
+const statusShortLabel: Record<Status, string> = {
+  'Pending':        'Pending',
+  'In Development': 'In Dev',
+  'Complete':       'Complete',
+  'Ignore':         'Ignore',
+}
+
 function StickyNote({
   title,
   ownerName,
   priority,
+  status,
+  href,
   colorClass,
   ownerPillClass,
   priorityPillClass,
@@ -74,47 +90,63 @@ function StickyNote({
   title: string
   ownerName: string | null
   priority: string | null
+  status: Status
+  href: string
   colorClass: string
   ownerPillClass: string
   priorityPillClass: string
 }) {
   const tooltip = [
     title,
-    `Owner: ${ownerName ?? 'Unassigned'}`,
+    `Status: ${status}`,
     `Priority: ${priority ? `P - ${priority}` : '—'}`,
+    `Owner: ${ownerName ?? 'Unassigned'}`,
   ].join('\n')
 
   return (
-    <div
+    <Link
+      href={href}
       title={tooltip}
-      className={cn(
-        'w-[96px] rounded-sm border shadow-sm p-1.5',
-        'text-[10px] font-medium leading-tight',
-        'flex flex-col gap-1',
-        colorClass,
-      )}
+      className="block w-[96px]"
     >
-      {/* Title */}
-      <span className="line-clamp-2 break-words">{title}</span>
+      <div
+        className={cn(
+          'w-[96px] rounded-sm border shadow-sm p-1.5',
+          'text-[10px] font-medium leading-tight',
+          'flex flex-col gap-1',
+          'hover:brightness-95 hover:shadow-md transition-all',
+          colorClass,
+        )}
+      >
+        {/* Title */}
+        <span className="line-clamp-2 break-words">{title}</span>
 
-      {/* Pills */}
-      <div className="flex flex-col gap-0.5 mt-0.5">
-        {/* Owner pill */}
-        <span className={cn(
-          'rounded px-1 py-0.5 text-[8.5px] font-medium leading-none truncate',
-          ownerPillClass,
-        )}>
-          {ownerName ?? 'Unassigned'}
-        </span>
-        {/* Priority pill — always shown */}
-        <span className={cn(
-          'rounded px-1 py-0.5 text-[8.5px] font-bold leading-none',
-          priorityPillClass,
-        )}>
-          {priority ? `P - ${priority}` : 'P - —'}
-        </span>
+        {/* Pills: Status → Priority → Owner */}
+        <div className="flex flex-col gap-0.5 mt-0.5">
+          {/* Status pill */}
+          <span className={cn(
+            'rounded px-1 py-0.5 text-[8.5px] font-bold leading-none',
+            statusPillClass[status],
+          )}>
+            {statusShortLabel[status]}
+          </span>
+          {/* Priority pill — always shown */}
+          <span className={cn(
+            'rounded px-1 py-0.5 text-[8.5px] font-bold leading-none',
+            priorityPillClass,
+          )}>
+            {priority ? `P - ${priority}` : 'P - —'}
+          </span>
+          {/* Owner pill */}
+          <span className={cn(
+            'rounded px-1 py-0.5 text-[8.5px] font-medium leading-none truncate',
+            ownerPillClass,
+          )}>
+            {ownerName ?? 'Unassigned'}
+          </span>
+        </div>
       </div>
-    </div>
+    </Link>
   )
 }
 
@@ -132,7 +164,7 @@ export function WorkflowSwimlane() {
       supabase.from('workflow_steps').select('*').order('order_index'),
       supabase
         .from('step_items')
-        .select('id, workflow_step_id, title, item_type, order_index, owner_person_id, priority_major, priority_sub')
+        .select('id, workflow_step_id, title, item_type, order_index, owner_person_id, priority_major, priority_sub, status')
         .order('order_index'),
       supabase.from('people').select('id, first_name, last_name'),
     ]).then(([stepsRes, itemsRes, peopleRes]) => {
@@ -237,6 +269,8 @@ export function WorkflowSwimlane() {
                             title={item.title}
                             ownerName={ownerName}
                             priority={priority}
+                            status={item.status}
+                            href={`/${step.slug}#item-${item.id}`}
                             colorClass={lane.noteColor}
                             ownerPillClass={lane.ownerPillBg}
                             priorityPillClass={lane.priorityPillBg}

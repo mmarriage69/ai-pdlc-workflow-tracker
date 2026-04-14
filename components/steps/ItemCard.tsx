@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { StepItem, Person, ITEM_TYPE_LABELS, USAGE_MODE_LABELS } from '@/lib/types'
 import { StatusBadge } from './StatusBadge'
 import { ItemForm } from './ItemForm'
@@ -46,14 +46,23 @@ interface ItemCardProps {
   people: Person[]
   isFirst: boolean
   isLast: boolean
+  initialExpanded?: boolean
   onUpdate: (data: Partial<StepItem>) => Promise<void>
   onDelete: () => Promise<void>
   onMoveUp: () => Promise<void>
   onMoveDown: () => Promise<void>
 }
 
-export function ItemCard({ item, people, isFirst, isLast, onUpdate, onDelete, onMoveUp, onMoveDown }: ItemCardProps) {
-  const [expanded, setExpanded] = useState(false)
+export function ItemCard({ item, people, isFirst, isLast, initialExpanded, onUpdate, onDelete, onMoveUp, onMoveDown }: ItemCardProps) {
+  const [expanded, setExpanded] = useState(initialExpanded ?? false)
+  const cardRef = useRef<HTMLDivElement>(null)
+
+  // Scroll into view when navigated to from the swimlane
+  useEffect(() => {
+    if (initialExpanded && cardRef.current) {
+      setTimeout(() => cardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150)
+    }
+  }, [initialExpanded])
   const [editing, setEditing] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
@@ -96,7 +105,7 @@ export function ItemCard({ item, people, isFirst, isLast, onUpdate, onDelete, on
 
   return (
     <>
-      <div className="border border-slate-200 rounded-xl bg-white shadow-sm">
+      <div id={`item-${item.id}`} ref={cardRef} className="border border-slate-200 rounded-xl bg-white shadow-sm">
         {/* Card header row */}
         <div
           className="flex items-start gap-3 px-4 py-3 cursor-pointer hover:bg-slate-50 rounded-xl transition-colors"

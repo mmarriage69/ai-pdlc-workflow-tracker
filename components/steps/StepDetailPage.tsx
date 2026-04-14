@@ -48,7 +48,16 @@ export function StepDetailPage({ slug }: StepDetailPageProps) {
   const [addingSection, setAddingSection] = useState(false)
   const [newSectionTitle, setNewSectionTitle] = useState('')
   const [addingItem, setAddingItem] = useState(false)
+  const [highlightedItemId, setHighlightedItemId] = useState<string | null>(null)
   const printRef = useRef<HTMLDivElement>(null)
+
+  // Read URL hash once on mount to know which item to auto-expand
+  useEffect(() => {
+    const hash = window.location.hash
+    if (hash.startsWith('#item-')) {
+      setHighlightedItemId(hash.slice(6))
+    }
+  }, [])
 
   const loadData = useCallback(async () => {
     try {
@@ -412,6 +421,7 @@ export function StepDetailPage({ slug }: StepDetailPageProps) {
               people={people}
               isFirst={idx === 0}
               isLast={idx === items.length - 1}
+              initialExpanded={item.id === highlightedItemId}
               onUpdate={(data) => updateItem(item.id, data)}
               onDelete={() => deleteItem(item.id)}
               onMoveUp={() => updateItem(item.id, { order_index: item.order_index - 1 })}
