@@ -4,13 +4,14 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, Target, Search, Lightbulb,
-  Hammer, BarChart2, Megaphone, Users, X, Menu, Sparkles
+  Hammer, BarChart2, Megaphone, Users, X, Menu, Sparkles, ListOrdered
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useState } from 'react'
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, section: null },
+  { href: '/prioritization', label: 'Prioritization', icon: ListOrdered, section: null },
   { href: '/goals-planning', label: 'Goals / Planning', icon: Target, section: 'Workflow Steps' },
   { href: '/discover-question', label: 'Discover / Question', icon: Search, section: null },
   { href: '/hypothesize-frame', label: 'Hypothesize & Frame', icon: Lightbulb, section: null },

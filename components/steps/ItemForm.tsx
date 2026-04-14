@@ -33,7 +33,7 @@ function docToText(doc: object): string {
   }
 }
 
-const SUB_PRIORITY_OPTIONS = ['', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
+const SUB_PRIORITY_OPTIONS = ['', 'a', 'b', 'c', 'd', 'e', 'f']
 
 export function ItemForm({ item, people, onSave, onCancel, onPersonAdded }: ItemFormProps) {
   const [title, setTitle] = useState(item?.title ?? '')
@@ -134,21 +134,21 @@ export function ItemForm({ item, people, onSave, onCancel, onPersonAdded }: Item
           <Label>Priority</Label>
           <div className="flex items-end gap-3 mt-1">
             <div className="flex-1">
-              <p className="text-[11px] text-slate-400 mb-1">Major (1, 2, 3…)</p>
+              <p className="text-[11px] text-slate-400 mb-1">Major (1–5)</p>
               <Input
                 type="number"
                 min={1}
-                max={99}
+                max={5}
                 value={priorityMajor}
                 onChange={(e) => {
                   setPriorityMajor(e.target.value)
                   if (e.target.value.trim() === '') setPrioritySub('')
                 }}
-                placeholder="e.g. 1"
+                placeholder="1–5"
               />
             </div>
             <div className="flex-1">
-              <p className="text-[11px] text-slate-400 mb-1">Sub (a, b, c…)</p>
+              <p className="text-[11px] text-slate-400 mb-1">Sub (a–f)</p>
               <Select
                 value={prioritySub}
                 onValueChange={(v) => setPrioritySub(v ?? '')}

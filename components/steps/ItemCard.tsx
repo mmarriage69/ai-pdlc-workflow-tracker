@@ -47,13 +47,15 @@ interface ItemCardProps {
   isFirst: boolean
   isLast: boolean
   initialExpanded?: boolean
+  hideReorder?: boolean
   onUpdate: (data: Partial<StepItem>) => Promise<void>
   onDelete: () => Promise<void>
   onMoveUp: () => Promise<void>
   onMoveDown: () => Promise<void>
+  onPersonAdded?: (person: Person) => void
 }
 
-export function ItemCard({ item, people, isFirst, isLast, initialExpanded, onUpdate, onDelete, onMoveUp, onMoveDown }: ItemCardProps) {
+export function ItemCard({ item, people, isFirst, isLast, initialExpanded, hideReorder, onUpdate, onDelete, onMoveUp, onMoveDown, onPersonAdded }: ItemCardProps) {
   const [expanded, setExpanded] = useState(initialExpanded ?? false)
   const cardRef = useRef<HTMLDivElement>(null)
 
@@ -146,26 +148,30 @@ export function ItemCard({ item, people, isFirst, isLast, initialExpanded, onUpd
             </p>
           </div>
           <div className="flex items-center gap-0.5 shrink-0" onClick={(e) => e.stopPropagation()}>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 w-7 p-0 text-slate-300 hover:text-slate-600 hover:bg-slate-100"
-              onClick={onMoveUp}
-              disabled={isFirst}
-              title="Move up"
-            >
-              <ArrowUp size={13} />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 w-7 p-0 text-slate-300 hover:text-slate-600 hover:bg-slate-100"
-              onClick={onMoveDown}
-              disabled={isLast}
-              title="Move down"
-            >
-              <ArrowDown size={13} />
-            </Button>
+            {!hideReorder && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 w-7 p-0 text-slate-300 hover:text-slate-600 hover:bg-slate-100"
+                  onClick={onMoveUp}
+                  disabled={isFirst}
+                  title="Move up"
+                >
+                  <ArrowUp size={13} />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 w-7 p-0 text-slate-300 hover:text-slate-600 hover:bg-slate-100"
+                  onClick={onMoveDown}
+                  disabled={isLast}
+                  title="Move down"
+                >
+                  <ArrowDown size={13} />
+                </Button>
+              </>
+            )}
             <Button
               variant="ghost"
               size="sm"
@@ -401,6 +407,7 @@ export function ItemCard({ item, people, isFirst, isLast, initialExpanded, onUpd
               setEditing(false)
             }}
             onCancel={() => setEditing(false)}
+            onPersonAdded={onPersonAdded}
           />
         </DialogContent>
       </Dialog>
