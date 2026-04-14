@@ -129,48 +129,52 @@ export function ItemForm({ item, people, onSave, onCancel, onPersonAdded }: Item
           </Select>
         </div>
 
-        {/* Priority */}
-        <div>
-          <Label>Priority (Major)</Label>
-          <Input
-            type="number"
-            min={1}
-            max={99}
-            value={priorityMajor}
-            onChange={(e) => setPriorityMajor(e.target.value)}
-            placeholder="e.g. 1"
-            className="mt-1"
-          />
-        </div>
-
-        <div>
-          <Label>Priority (Sub)</Label>
-          <Select
-            value={prioritySub}
-            onValueChange={(v) => setPrioritySub(v ?? '')}
-            disabled={priorityMajor.trim() === ''}
-          >
-            <SelectTrigger className="mt-1">
-              <SelectValue placeholder="None" />
-            </SelectTrigger>
-            <SelectContent>
-              {SUB_PRIORITY_OPTIONS.map((v) => (
-                <SelectItem key={v === '' ? '__none__' : v} value={v}>
-                  {v === '' ? 'None' : v}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {priorityMajor.trim() !== '' && prioritySub && (
-            <p className="text-xs text-amber-600 font-semibold mt-1">
-              Priority: {priorityMajor}{prioritySub}
-            </p>
-          )}
-          {priorityMajor.trim() !== '' && !prioritySub && (
-            <p className="text-xs text-amber-600 font-semibold mt-1">
-              Priority: {priorityMajor}
-            </p>
-          )}
+        {/* Priority — Major + Sub on the same line */}
+        <div className="md:col-span-2">
+          <Label>Priority</Label>
+          <div className="flex items-end gap-3 mt-1">
+            <div className="flex-1">
+              <p className="text-[11px] text-slate-400 mb-1">Major (1, 2, 3…)</p>
+              <Input
+                type="number"
+                min={1}
+                max={99}
+                value={priorityMajor}
+                onChange={(e) => {
+                  setPriorityMajor(e.target.value)
+                  if (e.target.value.trim() === '') setPrioritySub('')
+                }}
+                placeholder="e.g. 1"
+              />
+            </div>
+            <div className="flex-1">
+              <p className="text-[11px] text-slate-400 mb-1">Sub (a, b, c…)</p>
+              <Select
+                value={prioritySub}
+                onValueChange={(v) => setPrioritySub(v ?? '')}
+                disabled={priorityMajor.trim() === ''}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="None" />
+                </SelectTrigger>
+                <SelectContent>
+                  {SUB_PRIORITY_OPTIONS.map((v) => (
+                    <SelectItem key={v === '' ? '__none__' : v} value={v}>
+                      {v === '' ? 'None' : v}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {priorityMajor.trim() !== '' && (
+              <div className="shrink-0 pb-0.5">
+                <p className="text-[11px] text-slate-400 mb-1">Preview</p>
+                <span className="inline-flex items-center px-2 py-1.5 rounded border bg-amber-50 text-amber-700 border-amber-200 text-sm font-bold tabular-nums">
+                  {priorityMajor}{prioritySub}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
 
         <div>
