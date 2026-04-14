@@ -7,10 +7,19 @@ export type ItemType =
 
 export type UsageMode = 'standalone' | 'orchestrated' | 'both'
 
+export interface Team {
+  id: string
+  name: string
+  created_at: string
+  updated_at: string
+}
+
 export interface Person {
   id: string
   first_name: string
   last_name: string
+  email: string | null
+  team_id: string | null
   created_at: string
   updated_at: string
 }
