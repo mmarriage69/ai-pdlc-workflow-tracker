@@ -8,6 +8,27 @@ import { ItemForm } from '@/components/steps/ItemForm'
 import { Pencil, Trash2 } from 'lucide-react'
 import type { EnrichedItem } from './PrioritizationPage'
 
+// ── Plain-text extractor for detail_json (TipTap format) ─────────────────────
+function docToText(doc: object | null | undefined): string {
+  if (!doc) return ''
+  const d = doc as { content?: { content?: { content?: { text?: string }[] }[] }[] }
+  try {
+    return (
+      d.content
+        ?.map((b) =>
+          b.content
+            ?.map((i) => i.content?.map((t) => t.text ?? '').join('') ?? '')
+            .join('\n') ?? ''
+        )
+        .join('\n') ?? ''
+    )
+  } catch {
+    return ''
+  }
+}
+
+// ── Styles ────────────────────────────────────────────────────────────────────
+
 const typeBorderColor: Record<string, string> = {
   ai_skill: 'border-l-yellow-400',
   non_ai_infrastructure: 'border-l-emerald-400',
@@ -34,6 +55,8 @@ const statusShortLabel: Record<Status, string> = {
   Ignore: 'Ignore',
 }
 
+// ── Component ─────────────────────────────────────────────────────────────────
+
 interface PriorityTileProps {
   item: EnrichedItem
   people: Person[]
@@ -53,6 +76,12 @@ export function PriorityTile({
   const [deleting, setDeleting] = useState(false)
 
   const owner = people.find((p) => p.id === item.owner_person_id)
+  const builder = people.find((p) => p.id === item.builder_person_id)
+  const ownerLabel = owner ? `O - ${owner.first_name} ${owner.last_name}` : 'O - Unassigned'
+  const builderLabel = builder ? `B - ${builder.first_name} ${builder.last_name}` : 'B - Unassigned'
+
+  // Detail explanation plain text for hover tooltip
+  const detailText = docToText(item.detail_json)
 
   async function handleDelete() {
     if (!confirm('Delete this item?')) return
@@ -63,10 +92,11 @@ export function PriorityTile({
 
   return (
     <>
-      {/* Fixed-size tile: h-[130px] × w-full */}
+      {/* Fixed-size tile: h-[152px] × w-full */}
       <div
+        title={detailText || undefined}
         className={cn(
-          'w-full h-[130px] rounded-lg border border-slate-200 shadow-sm',
+          'w-full h-[152px] rounded-lg border border-slate-200 shadow-sm',
           'border-l-4 flex flex-col p-2 overflow-hidden',
           typeBorderColor[item.item_type],
           typeBg[item.item_type],
@@ -104,7 +134,7 @@ export function PriorityTile({
         {/* Spacer */}
         <div className="flex-1" />
 
-        {/* Status + owner pills */}
+        {/* Status + Owner + Builder */}
         <div className="flex flex-col gap-0.5">
           <span
             className={cn(
@@ -114,10 +144,21 @@ export function PriorityTile({
           >
             {statusShortLabel[item.status]}
           </span>
-          <span className="text-[8px] text-slate-500 truncate leading-none">
-            {owner
-              ? `${owner.first_name} ${owner.last_name}`
-              : 'Unassigned'}
+          <span
+            className={cn(
+              'text-[8px] px-1 py-0.5 rounded-sm leading-none truncate',
+              owner ? 'text-indigo-700 bg-indigo-50' : 'text-slate-400',
+            )}
+          >
+            {ownerLabel}
+          </span>
+          <span
+            className={cn(
+              'text-[8px] px-1 py-0.5 rounded-sm leading-none truncate',
+              builder ? 'text-emerald-700 bg-emerald-50' : 'text-slate-400',
+            )}
+          >
+            {builderLabel}
           </span>
         </div>
       </div>

@@ -7,6 +7,25 @@ import { supabase } from '@/lib/supabase'
 import { WorkflowStep, StepItem, Person, ItemType, Status } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
+// ── Plain-text extractor for detail_json (TipTap format) ─────────────────────
+function docToText(doc: object | null | undefined): string {
+  if (!doc) return ''
+  const d = doc as { content?: { content?: { content?: { text?: string }[] }[] }[] }
+  try {
+    return (
+      d.content
+        ?.map((b) =>
+          b.content
+            ?.map((i) => i.content?.map((t) => t.text ?? '').join('') ?? '')
+            .join('\n') ?? ''
+        )
+        .join('\n') ?? ''
+    )
+  } catch {
+    return ''
+  }
+}
+
 // ── Swimlane row definitions ───────────────────────────────────────────────
 
 const LANES: {
@@ -17,6 +36,7 @@ const LANES: {
   rowBg: string          // row background tint
   headerBg: string       // left-side label bg
   ownerPillBg: string    // owner pill — contrasts with note
+  builderPillBg: string  // builder pill — contrasts with note
   priorityPillBg: string // priority pill — contrasts with note
 }[] = [
   {
@@ -27,6 +47,7 @@ const LANES: {
     rowBg: 'bg-yellow-50/40',
     headerBg: 'bg-yellow-100 border-r-yellow-200',
     ownerPillBg: 'bg-indigo-100 text-indigo-800',
+    builderPillBg: 'bg-emerald-100 text-emerald-800',
     priorityPillBg: 'bg-slate-700 text-white',
   },
   {
@@ -37,6 +58,7 @@ const LANES: {
     rowBg: 'bg-emerald-50/40',
     headerBg: 'bg-emerald-100 border-r-emerald-200',
     ownerPillBg: 'bg-blue-100 text-blue-800',
+    builderPillBg: 'bg-violet-100 text-violet-800',
     priorityPillBg: 'bg-slate-700 text-white',
   },
   {
@@ -47,6 +69,7 @@ const LANES: {
     rowBg: 'bg-orange-50/40',
     headerBg: 'bg-orange-100 border-r-orange-200',
     ownerPillBg: 'bg-purple-100 text-purple-800',
+    builderPillBg: 'bg-cyan-100 text-cyan-800',
     priorityPillBg: 'bg-slate-700 text-white',
   },
 ]
@@ -55,7 +78,8 @@ const LANES: {
 
 type StickyItem = Pick<StepItem,
   'id' | 'workflow_step_id' | 'title' | 'item_type' | 'order_index' |
-  'owner_person_id' | 'priority_major' | 'priority_sub' | 'status'
+  'owner_person_id' | 'builder_person_id' | 'priority_major' | 'priority_sub' |
+  'status' | 'detail_json'
 >
 
 function formatPriority(major: number | null, sub: string | null): string | null {
@@ -80,38 +104,46 @@ const statusShortLabel: Record<Status, string> = {
 function StickyNote({
   title,
   ownerName,
+  builderName,
   priority,
   status,
+  detailText,
   href,
   colorClass,
   ownerPillClass,
+  builderPillClass,
   priorityPillClass,
 }: {
   title: string
   ownerName: string | null
+  builderName: string | null
   priority: string | null
   status: Status
+  detailText: string
   href: string
   colorClass: string
   ownerPillClass: string
+  builderPillClass: string
   priorityPillClass: string
 }) {
-  const tooltip = [
+  const tooltipLines = [
     title,
     `Status: ${status}`,
     `Priority: ${priority ? `P - ${priority}` : '—'}`,
-    `Owner: ${ownerName ?? 'Unassigned'}`,
-  ].join('\n')
+    `O - ${ownerName ?? 'Unassigned'}`,
+    `B - ${builderName ?? 'Unassigned'}`,
+    detailText ? `\nDetail:\n${detailText}` : null,
+  ].filter(Boolean).join('\n')
 
   return (
     <Link
       href={href}
-      title={tooltip}
+      title={tooltipLines}
       className="block w-full"
     >
       <div
         className={cn(
-          'w-full h-[104px] rounded-sm border shadow-sm p-1.5',
+          'w-full h-[124px] rounded-sm border shadow-sm p-1.5',
           'text-[10px] font-medium leading-tight',
           'flex flex-col justify-between overflow-hidden',
           'hover:brightness-95 hover:shadow-md transition-all',
@@ -121,7 +153,7 @@ function StickyNote({
         {/* Title */}
         <span className="line-clamp-2 break-words">{title}</span>
 
-        {/* Pills: Status → Priority → Owner */}
+        {/* Pills: Status → Priority → O-Owner → B-Builder */}
         <div className="flex flex-col gap-0.5">
           {/* Status pill */}
           <span className={cn(
@@ -130,7 +162,7 @@ function StickyNote({
           )}>
             {statusShortLabel[status]}
           </span>
-          {/* Priority pill — always shown */}
+          {/* Priority pill */}
           <span className={cn(
             'rounded px-1 py-0.5 text-[8.5px] font-bold leading-none',
             priorityPillClass,
@@ -142,7 +174,14 @@ function StickyNote({
             'rounded px-1 py-0.5 text-[8.5px] font-medium leading-none truncate',
             ownerPillClass,
           )}>
-            {ownerName ?? 'Unassigned'}
+            O - {ownerName ?? 'Unassigned'}
+          </span>
+          {/* Builder pill */}
+          <span className={cn(
+            'rounded px-1 py-0.5 text-[8.5px] font-medium leading-none truncate',
+            builderPillClass,
+          )}>
+            B - {builderName ?? 'Unassigned'}
           </span>
         </div>
       </div>
@@ -164,7 +203,7 @@ export function WorkflowSwimlane() {
       supabase.from('workflow_steps').select('*').order('order_index'),
       supabase
         .from('step_items')
-        .select('id, workflow_step_id, title, item_type, order_index, owner_person_id, priority_major, priority_sub, status')
+        .select('id, workflow_step_id, title, item_type, order_index, owner_person_id, builder_person_id, priority_major, priority_sub, status, detail_json')
         .order('order_index'),
       supabase.from('people').select('id, first_name, last_name'),
     ]).then(([stepsRes, itemsRes, peopleRes]) => {
@@ -260,18 +299,24 @@ export function WorkflowSwimlane() {
                     >
                       {cellItems.map((item) => {
                         const owner = people.find((p) => p.id === item.owner_person_id)
+                        const builderPerson = people.find((p) => p.id === item.builder_person_id)
                         const ownerName = owner ? `${owner.first_name} ${owner.last_name}` : null
+                        const builderName = builderPerson ? `${builderPerson.first_name} ${builderPerson.last_name}` : null
                         const priority = formatPriority(item.priority_major, item.priority_sub)
+                        const detailText = docToText(item.detail_json as object | null | undefined)
                         return (
                           <StickyNote
                             key={item.id}
                             title={item.title}
                             ownerName={ownerName}
+                            builderName={builderName}
                             priority={priority}
                             status={item.status}
+                            detailText={detailText}
                             href={`/${step.slug}#item-${item.id}`}
                             colorClass={lane.noteColor}
                             ownerPillClass={lane.ownerPillBg}
+                            builderPillClass={lane.builderPillBg}
                             priorityPillClass={lane.priorityPillBg}
                           />
                         )

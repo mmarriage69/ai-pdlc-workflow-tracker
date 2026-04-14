@@ -138,12 +138,14 @@ export function ItemCard({ item, people, isFirst, isLast, initialExpanded, hideR
               </Badge>
               <StatusBadge status={item.status} />
             </div>
-            {/* Second row: usage mode + owner (always shown) */}
-            <p className="text-xs text-slate-400 mt-0.5">
-              {USAGE_MODE_LABELS[item.usage_mode]}
-              {' · '}
-              <span className={owner ? 'text-slate-500' : 'text-slate-300'}>
-                {owner ? `${owner.first_name} ${owner.last_name}` : 'Unassigned'}
+            {/* Second row: usage mode + O-owner + B-builder (always shown) */}
+            <p className="text-xs text-slate-400 mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+              <span>{USAGE_MODE_LABELS[item.usage_mode]}</span>
+              <span className={cn('font-medium', owner ? 'text-indigo-600' : 'text-slate-300')}>
+                O - {owner ? `${owner.first_name} ${owner.last_name}` : 'Unassigned'}
+              </span>
+              <span className={cn('font-medium', builder ? 'text-emerald-600' : 'text-slate-300')}>
+                B - {builder ? `${builder.first_name} ${builder.last_name}` : 'Unassigned'}
               </span>
             </p>
           </div>
