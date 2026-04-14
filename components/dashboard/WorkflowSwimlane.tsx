@@ -107,13 +107,13 @@ function StickyNote({
     <Link
       href={href}
       title={tooltip}
-      className="block w-[96px]"
+      className="block w-full"
     >
       <div
         className={cn(
-          'w-[96px] rounded-sm border shadow-sm p-1.5',
+          'w-full h-[104px] rounded-sm border shadow-sm p-1.5',
           'text-[10px] font-medium leading-tight',
-          'flex flex-col gap-1',
+          'flex flex-col justify-between overflow-hidden',
           'hover:brightness-95 hover:shadow-md transition-all',
           colorClass,
         )}
@@ -122,7 +122,7 @@ function StickyNote({
         <span className="line-clamp-2 break-words">{title}</span>
 
         {/* Pills: Status → Priority → Owner */}
-        <div className="flex flex-col gap-0.5 mt-0.5">
+        <div className="flex flex-col gap-0.5">
           {/* Status pill */}
           <span className={cn(
             'rounded px-1 py-0.5 text-[8.5px] font-bold leading-none',
@@ -196,7 +196,7 @@ export function WorkflowSwimlane() {
       ) : (
         <div className="overflow-x-auto rounded-xl border border-slate-200 shadow-sm bg-white">
           {/* minWidth keeps the grid readable; users scroll horizontally on smaller screens */}
-          <div style={{ minWidth: '1020px' }}>
+          <div style={{ minWidth: '1250px' }}>
 
             {/* ── Column headers (step names) ───────────────────────────────── */}
             <div className="flex border-b-2 border-slate-200 bg-slate-50">
@@ -208,7 +208,7 @@ export function WorkflowSwimlane() {
                   key={step.id}
                   href={`/${step.slug}`}
                   className={cn(
-                    'flex-1 min-w-[148px] px-3 py-2.5 text-center group transition-colors',
+                    'flex-1 min-w-[180px] px-3 py-2.5 text-center group transition-colors',
                     'hover:bg-indigo-50',
                     i < steps.length - 1 && 'border-r border-slate-200',
                   )}
@@ -255,7 +255,7 @@ export function WorkflowSwimlane() {
                     <div
                       key={step.id}
                       className={cn(
-                        'flex-1 min-w-[148px] p-2 flex flex-wrap gap-1.5 content-start min-h-[120px]',
+                        'flex-1 min-w-[180px] p-[5px] flex flex-col gap-[5px]',
                         stepIdx < steps.length - 1 && 'border-r border-slate-200',
                       )}
                     >
