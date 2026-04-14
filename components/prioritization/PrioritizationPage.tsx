@@ -6,6 +6,7 @@ import { StepItem, Person } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { ItemCard } from '@/components/steps/ItemCard'
+import { PriorityTile } from './PriorityTile'
 import { ResourceLevelingModal } from './ResourceLevelingModal'
 import { Users } from 'lucide-react'
 
@@ -212,7 +213,7 @@ export function PrioritizationPage() {
               </span>
             </div>
 
-            {/* Cells */}
+            {/* Cells: each holds fixed-size PriorityTiles */}
             {SUB_PRIORITIES.map((sub, subIdx) => {
               const key = `${major}-${sub}`
               const cellItemList = gridItems(major, sub)
@@ -240,19 +241,12 @@ export function PrioritizationPage() {
                       onDragEnd={handleDragEnd}
                       className="cursor-grab active:cursor-grabbing"
                     >
-                      <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-widest mb-0.5 px-1 truncate">
-                        {item.stepTitle}
-                      </p>
-                      <ItemCard
+                      {/* Fixed-size tile — consistent across the grid */}
+                      <PriorityTile
                         item={item}
                         people={people}
-                        isFirst={false}
-                        isLast={false}
-                        hideReorder={true}
                         onUpdate={async (data) => handleUpdateItem(item.id, data)}
                         onDelete={async () => handleDeleteItem(item.id)}
-                        onMoveUp={async () => {}}
-                        onMoveDown={async () => {}}
                         onPersonAdded={handlePersonAdded}
                       />
                     </div>
@@ -269,7 +263,7 @@ export function PrioritizationPage() {
         ))}
       </div>
 
-      {/* Not Yet Prioritized */}
+      {/* Not Yet Prioritized — uses expandable ItemCard */}
       <div
         className={cn(
           'rounded-xl border border-dashed border-slate-300 bg-slate-50/60 p-4 min-h-[120px] transition-colors',
