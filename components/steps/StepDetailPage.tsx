@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Plus, FileDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -416,7 +417,7 @@ export function StepDetailPage({ slug }: StepDetailPageProps) {
             />
           ))}
 
-          {items.length === 0 && !addingItem && (
+          {items.length === 0 && (
             <p className="text-sm text-slate-400 py-6 text-center border border-dashed border-slate-200 rounded-xl">
               No skills or components yet.
             </p>
@@ -468,22 +469,24 @@ export function StepDetailPage({ slug }: StepDetailPageProps) {
 
         {/* Add item */}
         <div className="mt-3 print:hidden">
-          {addingItem ? (
-            <div className="border border-indigo-200 rounded-xl p-4 bg-indigo-50/30 shadow-sm mt-2">
-              <h3 className="text-sm font-semibold text-slate-800 mb-3">Add Skill / Component</h3>
+          <Button variant="outline" size="sm" onClick={() => setAddingItem(true)} className="gap-1.5 mt-2">
+            <Plus size={14} />
+            Add Skill / Component
+          </Button>
+
+          <Dialog open={addingItem} onOpenChange={(isOpen) => { if (!isOpen) setAddingItem(false) }}>
+            <DialogContent className="sm:max-w-2xl overflow-y-auto max-h-[90vh]">
+              <DialogHeader>
+                <DialogTitle>Add Skill / Component</DialogTitle>
+              </DialogHeader>
               <ItemForm
                 people={people}
                 onSave={addItem}
                 onCancel={() => setAddingItem(false)}
                 onPersonAdded={handlePersonAdded}
               />
-            </div>
-          ) : (
-            <Button variant="outline" size="sm" onClick={() => setAddingItem(true)} className="gap-1.5 mt-2">
-              <Plus size={14} />
-              Add Skill / Component
-            </Button>
-          )}
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </div>
