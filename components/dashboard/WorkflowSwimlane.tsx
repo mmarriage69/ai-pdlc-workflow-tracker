@@ -6,6 +6,7 @@ import { ChevronDown, ChevronRight } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { WorkflowStep, StepItem, Person, ItemType, Status } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import { StyledTooltip } from '@/components/ui/tooltip'
 
 // ── Plain-text extractor for detail_json (TipTap format) ─────────────────────
 function docToText(node: unknown): string {
@@ -126,9 +127,9 @@ function StickyNote({
   ].filter(Boolean).join('\n')
 
   return (
+    <StyledTooltip content={tooltipLines}>
     <Link
       href={href}
-      title={tooltipLines}
       className="block w-full"
     >
       <div
@@ -176,6 +177,7 @@ function StickyNote({
         </div>
       </div>
     </Link>
+    </StyledTooltip>
   )
 }
 

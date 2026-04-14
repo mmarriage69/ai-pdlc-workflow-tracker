@@ -5,6 +5,7 @@ import { StepItem, Person, Status } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { ItemForm } from '@/components/steps/ItemForm'
+import { StyledTooltip } from '@/components/ui/tooltip'
 import { Pencil, Trash2 } from 'lucide-react'
 import type { EnrichedItem } from './PrioritizationPage'
 
@@ -83,8 +84,8 @@ export function PriorityTile({
   return (
     <>
       {/* Fixed-size tile: h-[152px] × w-full */}
+      <StyledTooltip content={detailText}>
       <div
-        title={detailText || undefined}
         className={cn(
           'w-full h-[152px] rounded-lg border border-slate-200 shadow-sm',
           'border-l-4 flex flex-col p-2 overflow-hidden',
@@ -152,6 +153,7 @@ export function PriorityTile({
           </span>
         </div>
       </div>
+      </StyledTooltip>
 
       {/* Edit dialog */}
       <Dialog
