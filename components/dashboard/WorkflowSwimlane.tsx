@@ -194,9 +194,8 @@ export function WorkflowSwimlane() {
       {open && (loading ? (
         <div className="h-72 rounded-xl border border-slate-200 bg-slate-50 animate-pulse" />
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-slate-200 shadow-sm bg-white">
-          {/* minWidth keeps the grid readable; users scroll horizontally on smaller screens */}
-          <div style={{ minWidth: '1250px' }}>
+        <div className="overflow-hidden rounded-xl border border-slate-200 shadow-sm bg-white">
+          <div>
 
             {/* ── Column headers (step names) ───────────────────────────────── */}
             <div className="flex border-b-2 border-slate-200 bg-slate-50">
@@ -208,7 +207,7 @@ export function WorkflowSwimlane() {
                   key={step.id}
                   href={`/${step.slug}`}
                   className={cn(
-                    'flex-1 min-w-[180px] px-3 py-2.5 text-center group transition-colors',
+                    'flex-1 min-w-0 px-3 py-2.5 text-center group transition-colors',
                     'hover:bg-indigo-50',
                     i < steps.length - 1 && 'border-r border-slate-200',
                   )}
@@ -255,7 +254,7 @@ export function WorkflowSwimlane() {
                     <div
                       key={step.id}
                       className={cn(
-                        'flex-1 min-w-[180px] p-[5px] flex flex-col gap-[5px]',
+                        'flex-1 min-w-0 p-[5px] flex flex-col gap-[5px]',
                         stepIdx < steps.length - 1 && 'border-r border-slate-200',
                       )}
                     >
