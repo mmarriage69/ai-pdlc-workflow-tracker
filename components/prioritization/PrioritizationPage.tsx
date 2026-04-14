@@ -146,9 +146,8 @@ export function PrioritizationPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-slate-900">Prioritization</h1>
         <Button
-          variant="outline"
           size="sm"
-          className="gap-2"
+          className="gap-2 bg-slate-900 text-white hover:bg-slate-800 border-0"
           onClick={() => setResourceModalOpen(true)}
         >
           <Users size={14} />
