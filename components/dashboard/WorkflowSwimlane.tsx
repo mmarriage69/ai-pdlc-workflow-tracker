@@ -16,7 +16,8 @@ const LANES: {
   noteColor: string      // sticky-note fill
   rowBg: string          // row background tint
   headerBg: string       // left-side label bg
-  pillBg: string         // pill background
+  ownerPillBg: string    // owner pill — contrasts with note
+  priorityPillBg: string // priority pill — contrasts with note
 }[] = [
   {
     key: 'ai_skill',
@@ -25,7 +26,8 @@ const LANES: {
     noteColor: 'bg-yellow-200 border-yellow-300 text-yellow-900',
     rowBg: 'bg-yellow-50/40',
     headerBg: 'bg-yellow-100 border-r-yellow-200',
-    pillBg: 'bg-yellow-300/60 text-yellow-900',
+    ownerPillBg: 'bg-indigo-100 text-indigo-800',
+    priorityPillBg: 'bg-slate-700 text-white',
   },
   {
     key: 'non_ai_infrastructure',
@@ -34,7 +36,8 @@ const LANES: {
     noteColor: 'bg-emerald-200 border-emerald-300 text-emerald-900',
     rowBg: 'bg-emerald-50/40',
     headerBg: 'bg-emerald-100 border-r-emerald-200',
-    pillBg: 'bg-emerald-300/60 text-emerald-900',
+    ownerPillBg: 'bg-blue-100 text-blue-800',
+    priorityPillBg: 'bg-slate-700 text-white',
   },
   {
     key: 'orchestration_component',
@@ -43,7 +46,8 @@ const LANES: {
     noteColor: 'bg-orange-200 border-orange-300 text-orange-900',
     rowBg: 'bg-orange-50/40',
     headerBg: 'bg-orange-100 border-r-orange-200',
-    pillBg: 'bg-orange-300/60 text-orange-900',
+    ownerPillBg: 'bg-purple-100 text-purple-800',
+    priorityPillBg: 'bg-slate-700 text-white',
   },
 ]
 
@@ -64,18 +68,20 @@ function StickyNote({
   ownerName,
   priority,
   colorClass,
-  pillClass,
+  ownerPillClass,
+  priorityPillClass,
 }: {
   title: string
   ownerName: string | null
   priority: string | null
   colorClass: string
-  pillClass: string
+  ownerPillClass: string
+  priorityPillClass: string
 }) {
   const tooltip = [
     title,
     `Owner: ${ownerName ?? 'Unassigned'}`,
-    `Priority: ${priority ?? '—'}`,
+    `Priority: ${priority ? `P - ${priority}` : '—'}`,
   ].join('\n')
 
   return (
@@ -96,16 +102,16 @@ function StickyNote({
         {/* Owner pill */}
         <span className={cn(
           'rounded px-1 py-0.5 text-[8.5px] font-medium leading-none truncate',
-          pillClass,
+          ownerPillClass,
         )}>
           {ownerName ?? 'Unassigned'}
         </span>
-        {/* Priority pill */}
+        {/* Priority pill — always shown */}
         <span className={cn(
           'rounded px-1 py-0.5 text-[8.5px] font-bold leading-none',
-          pillClass,
+          priorityPillClass,
         )}>
-          {priority ? `P${priority}` : 'No priority'}
+          {priority ? `P - ${priority}` : 'P - —'}
         </span>
       </div>
     </div>
@@ -232,7 +238,8 @@ export function WorkflowSwimlane() {
                             ownerName={ownerName}
                             priority={priority}
                             colorClass={lane.noteColor}
-                            pillClass={lane.pillBg}
+                            ownerPillClass={lane.ownerPillBg}
+                            priorityPillClass={lane.priorityPillBg}
                           />
                         )
                       })}
