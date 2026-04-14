@@ -25,6 +25,11 @@ function docToText(doc: object): string {
   }
 }
 
+function formatPriority(major: number | null, sub: string | null): string | null {
+  if (major === null || major === undefined) return null
+  return `${major}${sub ?? ''}`
+}
+
 function Field({ label, value }: { label: string; value: string }) {
   if (!value) return null
   return (
@@ -65,6 +70,7 @@ export function ItemCard({ item, people, isFirst, isLast, onUpdate, onDelete, on
 
   const owner = people.find((p) => p.id === item.owner_person_id)
   const builder = people.find((p) => p.id === item.builder_person_id)
+  const priority = formatPriority(item.priority_major, item.priority_sub)
 
   async function handleDelete() {
     if (!confirm('Delete this item?')) return
@@ -115,6 +121,12 @@ export function ItemCard({ item, people, isFirst, isLast, onUpdate, onDelete, on
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2">
+            {/* Priority badge */}
+            {priority && (
+              <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200 shrink-0 tabular-nums">
+                {priority}
+              </span>
+            )}
             <span className="text-sm font-semibold text-slate-800">{item.title}</span>
             <Badge
               variant="outline"
@@ -124,9 +136,13 @@ export function ItemCard({ item, people, isFirst, isLast, onUpdate, onDelete, on
             </Badge>
             <StatusBadge status={item.status} />
           </div>
+          {/* Second row: usage mode + owner (always shown) */}
           <p className="text-xs text-slate-400 mt-0.5">
             {USAGE_MODE_LABELS[item.usage_mode]}
-            {owner && ` · ${owner.first_name} ${owner.last_name}`}
+            {' · '}
+            <span className={owner ? 'text-slate-500' : 'text-slate-300'}>
+              {owner ? `${owner.first_name} ${owner.last_name}` : 'Unassigned'}
+            </span>
           </p>
         </div>
         <div className="flex items-center gap-0.5 shrink-0" onClick={(e) => e.stopPropagation()}>
@@ -177,11 +193,19 @@ export function ItemCard({ item, people, isFirst, isLast, onUpdate, onDelete, on
         <div className="border-t border-slate-100">
           {/* Main fields grid */}
           <div className="px-4 pt-3 pb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            {priority && (
+              <div>
+                <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest">Priority</p>
+                <span className="inline-block mt-1 text-sm font-bold px-2 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200 tabular-nums">
+                  {priority}
+                </span>
+              </div>
+            )}
             <Field label="Description" value={docToText(item.description_json)} />
             <Field label="Usage Mode" value={USAGE_MODE_LABELS[item.usage_mode]} />
             <Field label="Inputs" value={docToText(item.inputs_json)} />
             <Field label="Outputs" value={docToText(item.outputs_json)} />
-            {owner && <Field label="Owner" value={`${owner.first_name} ${owner.last_name}`} />}
+            <Field label="Owner" value={owner ? `${owner.first_name} ${owner.last_name}` : 'Unassigned'} />
             {builder && <Field label="Builder / Resource" value={`${builder.first_name} ${builder.last_name}`} />}
             <Field label="Notes" value={docToText(item.notes_json)} />
           </div>
@@ -197,27 +221,29 @@ export function ItemCard({ item, people, isFirst, isLast, onUpdate, onDelete, on
                   className="w-full flex items-center justify-between px-4 py-2.5 text-left hover:bg-slate-50 transition-colors"
                   onClick={() => setDetailOpen(!detailOpen)}
                 >
-                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">
-                    Detailed Explanation
-                  </span>
+                  {/* Chevron + label on the left */}
                   <div className="flex items-center gap-2">
-                    {!detailEditing && (
-                      <span
-                        className="text-xs text-indigo-500 hover:text-indigo-700 font-medium"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setDetailDraft(item.detail_json ?? {})
-                          setDetailOpen(true)
-                          setDetailEditing(true)
-                        }}
-                      >
-                        Edit
-                      </span>
-                    )}
                     {detailOpen
-                      ? <ChevronDown size={13} className="text-indigo-400" />
-                      : <ChevronRight size={13} className="text-slate-400" />}
+                      ? <ChevronDown size={13} className="text-indigo-400 shrink-0" />
+                      : <ChevronRight size={13} className="text-slate-400 shrink-0" />}
+                    <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">
+                      Detailed Explanation
+                    </span>
                   </div>
+                  {/* Edit on the right */}
+                  {!detailEditing && (
+                    <span
+                      className="text-xs text-indigo-500 hover:text-indigo-700 font-medium"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setDetailDraft(item.detail_json ?? {})
+                        setDetailOpen(true)
+                        setDetailEditing(true)
+                      }}
+                    >
+                      Edit
+                    </span>
+                  )}
                 </button>
                 {detailOpen && (
                   <div className="px-4 pb-3">
@@ -267,27 +293,29 @@ export function ItemCard({ item, people, isFirst, isLast, onUpdate, onDelete, on
                   className="w-full flex items-center justify-between px-4 py-2.5 text-left hover:bg-slate-50 transition-colors"
                   onClick={() => setPromptOpen(!promptOpen)}
                 >
-                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">
-                    Skill Creation Prompt
-                  </span>
+                  {/* Chevron + label on the left */}
                   <div className="flex items-center gap-2">
-                    {!promptEditing && (
-                      <span
-                        className="text-xs text-indigo-500 hover:text-indigo-700 font-medium"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setPromptDraft(item.prompt_text ?? '')
-                          setPromptOpen(true)
-                          setPromptEditing(true)
-                        }}
-                      >
-                        Edit
-                      </span>
-                    )}
                     {promptOpen
-                      ? <ChevronDown size={13} className="text-indigo-400" />
-                      : <ChevronRight size={13} className="text-slate-400" />}
+                      ? <ChevronDown size={13} className="text-indigo-400 shrink-0" />
+                      : <ChevronRight size={13} className="text-slate-400 shrink-0" />}
+                    <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">
+                      Skill Creation Prompt
+                    </span>
                   </div>
+                  {/* Edit on the right */}
+                  {!promptEditing && (
+                    <span
+                      className="text-xs text-indigo-500 hover:text-indigo-700 font-medium"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setPromptDraft(item.prompt_text ?? '')
+                        setPromptOpen(true)
+                        setPromptEditing(true)
+                      }}
+                    >
+                      Edit
+                    </span>
+                  )}
                 </button>
                 {promptOpen && (
                   <div className="px-4 pb-3">

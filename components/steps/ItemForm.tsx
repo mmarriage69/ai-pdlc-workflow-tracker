@@ -33,6 +33,8 @@ function docToText(doc: object): string {
   }
 }
 
+const SUB_PRIORITY_OPTIONS = ['', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
+
 export function ItemForm({ item, people, onSave, onCancel, onPersonAdded }: ItemFormProps) {
   const [title, setTitle] = useState(item?.title ?? '')
   const [itemType, setItemType] = useState<ItemType>(item?.item_type ?? 'ai_skill')
@@ -44,11 +46,16 @@ export function ItemForm({ item, people, onSave, onCancel, onPersonAdded }: Item
   const [inputs, setInputs] = useState(docToText(item?.inputs_json ?? {}))
   const [outputs, setOutputs] = useState(docToText(item?.outputs_json ?? {}))
   const [notes, setNotes] = useState(docToText(item?.notes_json ?? {}))
+  const [priorityMajor, setPriorityMajor] = useState<string>(
+    item?.priority_major !== null && item?.priority_major !== undefined ? String(item.priority_major) : ''
+  )
+  const [prioritySub, setPrioritySub] = useState<string>(item?.priority_sub ?? '')
   const [saving, setSaving] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setSaving(true)
+    const major = priorityMajor.trim() !== '' ? parseInt(priorityMajor, 10) : null
     await onSave({
       title,
       item_type: itemType,
@@ -60,6 +67,8 @@ export function ItemForm({ item, people, onSave, onCancel, onPersonAdded }: Item
       inputs_json: inputs ? textToDoc(inputs) : {},
       outputs_json: outputs ? textToDoc(outputs) : {},
       notes_json: notes ? textToDoc(notes) : {},
+      priority_major: major,
+      priority_sub: major !== null && prioritySub ? prioritySub : null,
     })
     setSaving(false)
   }
@@ -118,6 +127,50 @@ export function ItemForm({ item, people, onSave, onCancel, onPersonAdded }: Item
               ))}
             </SelectContent>
           </Select>
+        </div>
+
+        {/* Priority */}
+        <div>
+          <Label>Priority (Major)</Label>
+          <Input
+            type="number"
+            min={1}
+            max={99}
+            value={priorityMajor}
+            onChange={(e) => setPriorityMajor(e.target.value)}
+            placeholder="e.g. 1"
+            className="mt-1"
+          />
+        </div>
+
+        <div>
+          <Label>Priority (Sub)</Label>
+          <Select
+            value={prioritySub}
+            onValueChange={(v) => setPrioritySub(v ?? '')}
+            disabled={priorityMajor.trim() === ''}
+          >
+            <SelectTrigger className="mt-1">
+              <SelectValue placeholder="None" />
+            </SelectTrigger>
+            <SelectContent>
+              {SUB_PRIORITY_OPTIONS.map((v) => (
+                <SelectItem key={v === '' ? '__none__' : v} value={v}>
+                  {v === '' ? 'None' : v}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {priorityMajor.trim() !== '' && prioritySub && (
+            <p className="text-xs text-amber-600 font-semibold mt-1">
+              Priority: {priorityMajor}{prioritySub}
+            </p>
+          )}
+          {priorityMajor.trim() !== '' && !prioritySub && (
+            <p className="text-xs text-amber-600 font-semibold mt-1">
+              Priority: {priorityMajor}
+            </p>
+          )}
         </div>
 
         <div>

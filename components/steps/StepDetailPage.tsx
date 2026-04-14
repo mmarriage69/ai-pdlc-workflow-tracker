@@ -214,6 +214,8 @@ export function StepDetailPage({ slug }: StepDetailPageProps) {
       inputs_json: data.inputs_json ?? {},
       outputs_json: data.outputs_json ?? {},
       notes_json: data.notes_json ?? {},
+      priority_major: data.priority_major ?? null,
+      priority_sub: data.priority_sub ?? null,
       order_index: maxOrder + 1,
     }).select().single()
     if (created) {
