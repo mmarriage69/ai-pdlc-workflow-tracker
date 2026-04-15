@@ -13,5 +13,7 @@ CREATE TABLE IF NOT EXISTS step_item_links (
 
 ALTER TABLE step_item_links DISABLE ROW LEVEL SECURITY;
 
+GRANT ALL ON step_item_links TO anon, authenticated;
+
 CREATE INDEX IF NOT EXISTS step_item_links_source_idx ON step_item_links(source_item_id);
 CREATE INDEX IF NOT EXISTS step_item_links_target_idx ON step_item_links(target_item_id);
