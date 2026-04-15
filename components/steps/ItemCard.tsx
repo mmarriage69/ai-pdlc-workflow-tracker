@@ -1,20 +1,42 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { StepItem, Person, ITEM_TYPE_LABELS, USAGE_MODE_LABELS } from '@/lib/types'
+import { StepItem, Person, ITEM_TYPE_LABELS, USAGE_MODE_LABELS, StepItemLink } from '@/lib/types'
 import { StatusBadge } from './StatusBadge'
 import { ItemForm } from './ItemForm'
 import { RichTextEditor, RichTextDisplay } from '@/components/editor/RichTextEditor'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { ChevronDown, ChevronRight, Pencil, Trash2, ArrowUp, ArrowDown } from 'lucide-react'
+import { ChevronDown, ChevronRight, Pencil, Trash2, ArrowUp, ArrowDown, GitBranch, ExternalLink } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import Link from 'next/link'
+import { supabase } from '@/lib/supabase'
 
 const itemTypeBadgeClass: Record<string, string> = {
   ai_skill: 'bg-blue-50 text-blue-700 border-blue-200 font-semibold',
   non_ai_infrastructure: 'bg-slate-100 text-slate-600 border-slate-200 font-semibold',
   orchestration_component: 'bg-purple-50 text-purple-700 border-purple-200 font-semibold',
+}
+
+type LinkedItemRef = {
+  id: string
+  title: string
+  item_type: string
+  stepSlug: string
+  stepTitle: string
+}
+
+const itemTypeChipClass: Record<string, string> = {
+  ai_skill: 'bg-yellow-50 text-yellow-800 border-yellow-300',
+  non_ai_infrastructure: 'bg-emerald-50 text-emerald-800 border-emerald-300',
+  orchestration_component: 'bg-orange-50 text-orange-800 border-orange-300',
+}
+
+const itemTypeDotClass: Record<string, string> = {
+  ai_skill: 'bg-yellow-400',
+  non_ai_infrastructure: 'bg-emerald-400',
+  orchestration_component: 'bg-orange-400',
 }
 
 function docToText(node: unknown): string {
@@ -82,6 +104,56 @@ export function ItemCard({ item, people, isFirst, isLast, initialExpanded, hideR
   const owner = people.find((p) => p.id === item.owner_person_id)
   const builder = people.find((p) => p.id === item.builder_person_id)
   const priority = formatPriority(item.priority_major, item.priority_sub)
+
+  const [linkedInputs, setLinkedInputs] = useState<LinkedItemRef[]>([])
+  const [linkedOutputs, setLinkedOutputs] = useState<LinkedItemRef[]>([])
+  const [linkRefreshKey, setLinkRefreshKey] = useState(0)
+
+  useEffect(() => {
+    async function loadLinks() {
+      const { data: links } = await supabase
+        .from('step_item_links')
+        .select('*')
+        .eq('source_item_id', item.id)
+
+      if (!links?.length) {
+        setLinkedInputs([])
+        setLinkedOutputs([])
+        return
+      }
+
+      const targetIds = links.map((l: StepItemLink) => l.target_item_id)
+      const [targetsRes, stepsRes] = await Promise.all([
+        supabase.from('step_items').select('id, title, item_type, workflow_step_id').in('id', targetIds),
+        supabase.from('workflow_steps').select('id, slug, title'),
+      ])
+
+      const targets = targetsRes.data ?? []
+      const steps = stepsRes.data ?? []
+
+      const inputs: LinkedItemRef[] = []
+      const outputs: LinkedItemRef[] = []
+
+      for (const link of links as StepItemLink[]) {
+        const target = targets.find((t: { id: string }) => t.id === link.target_item_id)
+        const step = steps.find((s: { id: string }) => s.id === (target as { workflow_step_id?: string })?.workflow_step_id)
+        if (!target || !step) continue
+        const ref: LinkedItemRef = {
+          id: (target as { id: string }).id,
+          title: (target as { title: string }).title,
+          item_type: (target as { item_type: string }).item_type,
+          stepSlug: (step as { slug: string }).slug,
+          stepTitle: (step as { title: string }).title,
+        }
+        if (link.link_type === 'input') inputs.push(ref)
+        else outputs.push(ref)
+      }
+
+      setLinkedInputs(inputs)
+      setLinkedOutputs(outputs)
+    }
+    loadLinks()
+  }, [item.id, linkRefreshKey])
 
   async function handleDelete() {
     if (!confirm('Delete this item?')) return
@@ -237,6 +309,69 @@ export function ItemCard({ item, people, isFirst, isLast, initialExpanded, hideR
               <Field label="Owner" value={owner ? `${owner.first_name} ${owner.last_name}` : 'Unassigned'} />
               {builder && <Field label="Builder / Resource" value={`${builder.first_name} ${builder.last_name}`} />}
               <Field label="Notes" value={docToText(item.notes_json)} />
+
+              {/* GitHub URL */}
+              {item.github_url && (
+                <div className="md:col-span-2">
+                  <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest">GitHub</p>
+                  <a
+                    href={item.github_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 mt-0.5 text-sm text-indigo-600 hover:text-indigo-800 hover:underline break-all"
+                  >
+                    <GitBranch size={14} className="shrink-0" />
+                    {item.github_url}
+                    <ExternalLink size={11} className="text-slate-400 shrink-0" />
+                  </a>
+                </div>
+              )}
+
+              {/* Linked Inputs */}
+              {linkedInputs.length > 0 && (
+                <div className="md:col-span-2">
+                  <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest">Linked Inputs</p>
+                  <div className="flex flex-wrap gap-1.5 mt-1.5">
+                    {linkedInputs.map((ref) => (
+                      <Link
+                        key={ref.id}
+                        href={`/${ref.stepSlug}#item-${ref.id}`}
+                        className={cn(
+                          'inline-flex items-center gap-1.5 text-xs border rounded-full px-2.5 py-1 transition-opacity hover:opacity-70',
+                          itemTypeChipClass[ref.item_type] ?? 'bg-slate-50 text-slate-700 border-slate-200',
+                        )}
+                      >
+                        <span className={cn('inline-block w-1.5 h-1.5 rounded-full shrink-0', itemTypeDotClass[ref.item_type] ?? 'bg-slate-400')} />
+                        {ref.title}
+                        <ExternalLink size={9} className="opacity-50 shrink-0" />
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Linked Outputs */}
+              {linkedOutputs.length > 0 && (
+                <div className="md:col-span-2">
+                  <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest">Linked Outputs</p>
+                  <div className="flex flex-wrap gap-1.5 mt-1.5">
+                    {linkedOutputs.map((ref) => (
+                      <Link
+                        key={ref.id}
+                        href={`/${ref.stepSlug}#item-${ref.id}`}
+                        className={cn(
+                          'inline-flex items-center gap-1.5 text-xs border rounded-full px-2.5 py-1 transition-opacity hover:opacity-70',
+                          itemTypeChipClass[ref.item_type] ?? 'bg-slate-50 text-slate-700 border-slate-200',
+                        )}
+                      >
+                        <span className={cn('inline-block w-1.5 h-1.5 rounded-full shrink-0', itemTypeDotClass[ref.item_type] ?? 'bg-slate-400')} />
+                        {ref.title}
+                        <ExternalLink size={9} className="opacity-50 shrink-0" />
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* AI-skill-only sub-sections */}
@@ -406,6 +541,7 @@ export function ItemCard({ item, people, isFirst, isLast, initialExpanded, hideR
             onSave={async (data) => {
               await onUpdate(data)
               setEditing(false)
+              setLinkRefreshKey((k) => k + 1)
             }}
             onCancel={() => setEditing(false)}
             onPersonAdded={onPersonAdded}

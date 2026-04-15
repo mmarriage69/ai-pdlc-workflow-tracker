@@ -66,9 +66,18 @@ export interface StepItem {
   prompt_text: string | null
   priority_major: number | null
   priority_sub: string | null
+  github_url: string | null
   order_index: number
   created_at: string
   updated_at: string
+}
+
+export interface StepItemLink {
+  id: string
+  source_item_id: string
+  target_item_id: string
+  link_type: 'input' | 'output'
+  created_at: string
 }
 
 export const STATUSES: Status[] = ['Pending', 'In Development', 'Complete', 'Ignore']

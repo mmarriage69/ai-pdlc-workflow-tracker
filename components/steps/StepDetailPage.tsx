@@ -25,13 +25,12 @@ const itemTypeBadgeClass: Record<string, string> = {
   orchestration_component: 'bg-purple-50 text-purple-700 border-purple-200',
 }
 
-function docToText(doc: object): string {
-  const d = doc as { content?: { content?: { content?: { text?: string }[] }[] }[] }
-  try {
-    return d.content?.map(b => b.content?.map(i => i.content?.map(t => t.text ?? '').join('') ?? '').join('\n') ?? '').join('\n') ?? ''
-  } catch {
-    return ''
-  }
+function docToText(node: unknown): string {
+  if (!node || typeof node !== 'object') return ''
+  const n = node as { text?: string; content?: unknown[] }
+  if (typeof n.text === 'string') return n.text
+  if (!Array.isArray(n.content)) return ''
+  return n.content.map(docToText).join(' ').replace(/\s+/g, ' ').trim()
 }
 
 interface StepDetailPageProps {
@@ -223,6 +222,7 @@ export function StepDetailPage({ slug }: StepDetailPageProps) {
       inputs_json: data.inputs_json ?? {},
       outputs_json: data.outputs_json ?? {},
       notes_json: data.notes_json ?? {},
+      github_url: data.github_url ?? null,
       priority_major: data.priority_major ?? null,
       priority_sub: data.priority_sub ?? null,
       order_index: maxOrder + 1,

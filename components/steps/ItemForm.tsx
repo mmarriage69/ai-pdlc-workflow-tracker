@@ -1,13 +1,15 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { StepItem, Person, STATUSES, ITEM_TYPE_LABELS, USAGE_MODE_LABELS, ItemType, UsageMode, Status } from '@/lib/types'
+import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { OwnerSelect } from './OwnerSelect'
 import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
 
 interface ItemFormProps {
   item?: Partial<StepItem>
@@ -24,16 +26,97 @@ function textToDoc(text: string): object {
   }
 }
 
-function docToText(doc: object): string {
-  const d = doc as { content?: { content?: { content?: { text?: string }[] }[] }[] }
-  try {
-    return d.content?.map(b => b.content?.map(i => i.content?.map(t => t.text ?? '').join('') ?? '').join('') ?? '').join('\n') ?? ''
-  } catch {
-    return ''
-  }
+function docToText(node: unknown): string {
+  if (!node || typeof node !== 'object') return ''
+  const n = node as { text?: string; content?: unknown[] }
+  if (typeof n.text === 'string') return n.text
+  if (!Array.isArray(n.content)) return ''
+  return n.content.map(docToText).join(' ').replace(/\s+/g, ' ').trim()
 }
 
 const SUB_PRIORITY_OPTIONS = ['', 'a', 'b', 'c', 'd', 'e', 'f']
+
+const itemTypeDot: Record<string, string> = {
+  ai_skill: 'bg-yellow-400',
+  non_ai_infrastructure: 'bg-emerald-400',
+  orchestration_component: 'bg-orange-400',
+}
+
+type PickerItem = {
+  id: string
+  title: string
+  item_type: string
+  stepTitle: string
+}
+
+function LinkPicker({
+  label,
+  selectedIds,
+  onChange,
+  items,
+}: {
+  label: string
+  selectedIds: string[]
+  onChange: (ids: string[]) => void
+  items: PickerItem[]
+}) {
+  const grouped = useMemo(() => {
+    const map: Record<string, { stepTitle: string; items: PickerItem[] }> = {}
+    for (const i of items) {
+      if (!map[i.stepTitle]) map[i.stepTitle] = { stepTitle: i.stepTitle, items: [] }
+      map[i.stepTitle].items.push(i)
+    }
+    return Object.values(map)
+  }, [items])
+
+  function toggle(id: string) {
+    onChange(
+      selectedIds.includes(id)
+        ? selectedIds.filter((x) => x !== id)
+        : [...selectedIds, id],
+    )
+  }
+
+  return (
+    <div>
+      <Label className="text-[11px] font-semibold text-slate-500 uppercase tracking-widest">{label}</Label>
+      {items.length === 0 ? (
+        <p className="text-xs text-slate-400 mt-1 italic">No other items available.</p>
+      ) : (
+        <div className="mt-1 border border-slate-200 rounded-md max-h-44 overflow-y-auto bg-white">
+          {grouped.map((group) => (
+            <div key={group.stepTitle}>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2.5 py-1 bg-slate-50 border-b border-slate-100 sticky top-0">
+                {group.stepTitle}
+              </p>
+              {group.items.map((i) => (
+                <label
+                  key={i.id}
+                  className="flex items-center gap-2.5 px-2.5 py-1.5 hover:bg-slate-50 cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.includes(i.id)}
+                    onChange={() => toggle(i.id)}
+                    className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5"
+                  />
+                  <span
+                    className={cn('inline-block w-2 h-2 rounded-full shrink-0', itemTypeDot[i.item_type] ?? 'bg-slate-300')}
+                  />
+                  <span className="text-xs text-slate-700 truncate">{i.title}</span>
+                  <span className="text-[10px] text-slate-400 shrink-0 ml-auto">{ITEM_TYPE_LABELS[i.item_type as ItemType] ?? i.item_type}</span>
+                </label>
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
+      {selectedIds.length > 0 && (
+        <p className="text-[11px] text-indigo-600 mt-1">{selectedIds.length} selected</p>
+      )}
+    </div>
+  )
+}
 
 export function ItemForm({ item, people, onSave, onCancel, onPersonAdded }: ItemFormProps) {
   const [title, setTitle] = useState(item?.title ?? '')
@@ -46,15 +129,61 @@ export function ItemForm({ item, people, onSave, onCancel, onPersonAdded }: Item
   const [inputs, setInputs] = useState(docToText(item?.inputs_json ?? {}))
   const [outputs, setOutputs] = useState(docToText(item?.outputs_json ?? {}))
   const [notes, setNotes] = useState(docToText(item?.notes_json ?? {}))
+  const [githubUrl, setGithubUrl] = useState(item?.github_url ?? '')
   const [priorityMajor, setPriorityMajor] = useState<string>(
     item?.priority_major !== null && item?.priority_major !== undefined ? String(item.priority_major) : ''
   )
   const [prioritySub, setPrioritySub] = useState<string>(item?.priority_sub ?? '')
   const [saving, setSaving] = useState(false)
 
+  // Link picker state (edit mode only)
+  const isEditMode = Boolean(item?.id)
+  const [linkedInputIds, setLinkedInputIds] = useState<string[]>([])
+  const [linkedOutputIds, setLinkedOutputIds] = useState<string[]>([])
+  const [pickerItems, setPickerItems] = useState<PickerItem[]>([])
+
+  useEffect(() => {
+    if (!item?.id) return
+
+    Promise.all([
+      supabase.from('step_item_links').select('*').eq('source_item_id', item.id),
+      supabase.from('step_items').select('id, title, item_type, workflow_step_id').neq('id', item.id),
+      supabase.from('workflow_steps').select('id, title').order('order_index'),
+    ]).then(([linksRes, itemsRes, stepsRes]) => {
+      const links = linksRes.data ?? []
+      const allItems = itemsRes.data ?? []
+      const allSteps = stepsRes.data ?? []
+
+      setLinkedInputIds(links.filter((l) => l.link_type === 'input').map((l) => l.target_item_id))
+      setLinkedOutputIds(links.filter((l) => l.link_type === 'output').map((l) => l.target_item_id))
+
+      setPickerItems(
+        allItems.map((i) => ({
+          id: i.id,
+          title: i.title,
+          item_type: i.item_type,
+          stepTitle: allSteps.find((s) => s.id === i.workflow_step_id)?.title ?? 'Unknown Step',
+        })),
+      )
+    })
+  }, [item?.id])
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setSaving(true)
+
+    // Save links first (only in edit mode — we need the item id)
+    if (item?.id) {
+      await supabase.from('step_item_links').delete().eq('source_item_id', item.id)
+      const newLinks = [
+        ...linkedInputIds.map((id) => ({ source_item_id: item.id!, target_item_id: id, link_type: 'input' as const })),
+        ...linkedOutputIds.map((id) => ({ source_item_id: item.id!, target_item_id: id, link_type: 'output' as const })),
+      ]
+      if (newLinks.length > 0) {
+        await supabase.from('step_item_links').insert(newLinks)
+      }
+    }
+
     const major = priorityMajor.trim() !== '' ? parseInt(priorityMajor, 10) : null
     await onSave({
       title,
@@ -67,6 +196,7 @@ export function ItemForm({ item, people, onSave, onCancel, onPersonAdded }: Item
       inputs_json: inputs ? textToDoc(inputs) : {},
       outputs_json: outputs ? textToDoc(outputs) : {},
       notes_json: notes ? textToDoc(notes) : {},
+      github_url: githubUrl.trim() || null,
       priority_major: major,
       priority_sub: major !== null && prioritySub ? prioritySub : null,
     })
@@ -129,7 +259,7 @@ export function ItemForm({ item, people, onSave, onCancel, onPersonAdded }: Item
           </Select>
         </div>
 
-        {/* Priority — Major + Sub on the same line */}
+        {/* Priority */}
         <div className="md:col-span-2">
           <Label>Priority</Label>
           <div className="flex items-end gap-3 mt-1">
@@ -201,6 +331,18 @@ export function ItemForm({ item, people, onSave, onCancel, onPersonAdded }: Item
         </div>
 
         <div className="md:col-span-2">
+          <Label htmlFor="github-url">GitHub URL</Label>
+          <Input
+            id="github-url"
+            type="url"
+            value={githubUrl}
+            onChange={(e) => setGithubUrl(e.target.value)}
+            placeholder="https://github.com/…"
+            className="mt-1"
+          />
+        </div>
+
+        <div className="md:col-span-2">
           <Label htmlFor="description">Description</Label>
           <Textarea
             id="description"
@@ -243,6 +385,32 @@ export function ItemForm({ item, people, onSave, onCancel, onPersonAdded }: Item
             className="mt-1"
           />
         </div>
+
+        {/* Input / Output item links — edit mode only */}
+        {isEditMode ? (
+          <>
+            <div className="md:col-span-2">
+              <LinkPicker
+                label="Linked Inputs"
+                selectedIds={linkedInputIds}
+                onChange={setLinkedInputIds}
+                items={pickerItems}
+              />
+            </div>
+            <div className="md:col-span-2">
+              <LinkPicker
+                label="Linked Outputs"
+                selectedIds={linkedOutputIds}
+                onChange={setLinkedOutputIds}
+                items={pickerItems}
+              />
+            </div>
+          </>
+        ) : (
+          <p className="md:col-span-2 text-[11px] text-slate-400 italic">
+            Save the item first, then re-open it to add linked inputs / outputs.
+          </p>
+        )}
       </div>
 
       <div className="flex gap-2 pt-2">
